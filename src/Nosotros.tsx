@@ -1,106 +1,108 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import Compromiso from "./imagenes/Compromiso.png";
-import Confianza from "./imagenes/confianza.png";
-import HeroImage from "./imagenes/FondoInicio.jpg";
+import { FaHandsHelping, FaFire, FaUserCheck, FaFacebook, FaInstagram, FaGithub } from "react-icons/fa";
 import Logo from "./imagenes/Logo(sin fondo).png";
-import LogoBlanco from "./imagenes/Logo_blanco_sin_fondo.png";
-import Pasion from "./imagenes/Pasion.png";
+import HeroImage from "./imagenes/FondoInicio.jpg";
 import Persona from "./imagenes/persona.jpg";
 
 export default function Nosotros() {
-  const [darkMode, setDarkMode] = useState(false);
-
   return (
-    <div className={darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"}>
-
-      <nav className="p-4 flex justify-between items-center">
-        <Link to="/">
-          <img src={darkMode ? LogoBlanco : Logo} alt="Wayra logo" className="h-20" />
-        </Link>
-        <div className="flex space-x-6 text-sm">
-          <Link to="/" className="hover:text-black">Inicio</Link>
-          <Link to="/nosotros" className="hover:text-black">Nosotros</Link>
-          <Link to="/Vuelos" className="hover:text-black">Vuelos</Link>
-          <Link to="/Hoteles" className="hover:text-black">Hoteles</Link>
-          <Link to="/Bus" className="hover:text-black">Bus</Link>
-          <Link to="/contacto" className="hover:text-black">Contacto</Link>
-        </div>
-        <button
-          className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded"
-          onClick={() => setDarkMode(!darkMode)}
-        >
-          {darkMode ? "🌞" : "🌙"}
-        </button>
-      </nav>
-
-
-      <section className="relative">
-        <div className="w-full h-40">
-          <img src={HeroImage} alt="Colombian street" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <h1 className="text-5xl font-bold">Nosotros</h1>
-          </div>
-        </div>
+    <div className="flex flex-col min-h-screen">
+      
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
+  <img src={Logo} alt="Logo de Wayra" className="h-16" />
+  <div className="flex space-x-6">
+    <Link to="/" className="text-lg font-semibold text-black transition duration-300">Inicio</Link>
+    <Link to="/nosotros" className="text-lg font-semibold text-black transition duration-300">Nosotros</Link>
+    <Link to="/vuelos" className="text-lg font-semibold text-black transition duration-300">Vuelos</Link>
+    <Link to="/hoteles" className="text-lg font-semibold text-black transition duration-300">Hoteles</Link>
+    <Link to="/bus" className="text-lg font-semibold text-black transition duration-300">Bus</Link>
+    <Link to="/contacto" className="text-lg font-semibold text-black transition duration-300">Contacto</Link>
+  </div>
+</nav>
+      {/* Hero Section */}
+      <section className="relative w-full h-[350px] flex items-center justify-center">
+        <img src={HeroImage} alt="Colombian street" className="w-full h-full object-cover brightness-50" />
+        <h1 className="absolute text-6xl font-extrabold text-white drop-shadow-lg">Nosotros</h1>
       </section>
 
-      <section className="py-8 px-4 md:px-16">
-        <div className="flex flex-col md:flex-row bg-opacity-20 rounded-lg overflow-hidden">
-          <div className="w-full md:w-1/3">
-            <img src={Persona} alt="Colombian person" className="w-full h-full object-cover" />
-          </div>
-          <div className="w-full md:w-2/3 bg-amber-700 p-8">
-            <h2 className="text-3xl font-bold mb-4">Wayra</h2>
-            <p>
-            En Wayra, nos especializamos en ofrecer soluciones de transporte aéreo y terrestre para conectar los destinos más importantes de Colombia. Nuestro compromiso es brindarte comodidad, seguridad y flexibilidad, permitiéndote viajar sin preocupaciones y disfrutar de cada trayecto.
+      {/* About Section Mejorado */}
+      <section className="py-16 px-6 md:px-16 flex justify-center">
+        <div className="bg-white shadow-xl rounded-lg overflow-hidden flex flex-col md:flex-row max-w-6xl w-full">
+          
+            {/* Imagen Ajustada */}
+            <div className="w-full md:w-1/2">
+          <img 
+            src={Persona} 
+            alt="Mujer sonriendo en un mercado colombiano" 
+            className="w-full h-[500px] object-cover object-center md:object-left rounded-lg"
+          />
+        </div>
 
-Sabemos que cada viajero tiene necesidades únicas, por eso ofrecemos una amplia gama de opciones de transporte. Desde vuelos nacionales hasta buses intermunicipales y traslados privados, en Wayra nos aseguramos de que siempre tengas la mejor alternativa para moverte por el país.
-
-Trabajamos con tecnología de punta y altos estándares de seguridad para garantizar que tu experiencia de viaje sea placentera y eficiente. Ya sea que estés explorando nuevas ciudades, viajando por negocios o simplemente visitando a tus seres queridos, en Wayra nos encargamos de que llegues a tu destino con total tranquilidad.
-
-Explora Colombia a tu manera, con la confianza de contar con un servicio de transporte diseñado para ti. 🚀🌍
+          {/* Texto Ajustado */}
+          <div className="w-full md:w-1/2 flex items-center px-12 py-14 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg md:ml-8">
+          <div>
+            <h2 className="text-4xl font-extrabold mb-6">Sobre Wayra</h2>
+            <p className="text-xl leading-relaxed">
+              En Wayra, nos especializamos en ofrecer soluciones de transporte aéreo y terrestre para conectar
+              los destinos más importantes de Colombia.
+              <br /><br />
+              Nuestro compromiso es brindarte comodidad, seguridad y flexibilidad, permitiéndote viajar sin
+              preocupaciones y disfrutar de cada trayecto.
             </p>
           </div>
         </div>
-      </section>
+        
+      </div>
+    </section>
 
-
-      <section className="py-8 px-4 md:px-16">
-        <h2 className="text-3xl font-bold mb-2">Nuestros Valores</h2>
-        <p className="mb-8 text-gray-500">Principios que reflejan nuestro compromiso con la excelencia y la satisfacción de nuestros clientes</p>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 bg-yellow-200 text-black p-6 rounded-lg flex flex-col items-center">
-            <img src={Compromiso} alt="Compromiso" className="w-40 h-40 object-cover rounded-lg mb-4" />
-            <h3 className="text-xl font-bold mb-4">COMPROMISO</h3>
-            <p className="text-center">Ofrecemos un servicio de calidad que supera expectativas.</p>
+      {/* Values Section */}
+      <section className="py-16 px-6 md:px-16 text-center">
+        <h2 className="text-4xl font-extrabold mb-6">Nuestros Valores</h2>
+        <p className="mb-12 text-gray-500">Principios que reflejan nuestro compromiso con la excelencia y la satisfacción de nuestros clientes</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-yellow-200 p-8 rounded-xl shadow-lg hover:scale-105 transition duration-300 transform">
+            <FaHandsHelping className="text-6xl text-yellow-700 mb-4 mx-auto" />
+            <h3 className="text-2xl font-bold">COMPROMISO</h3>
+            <p className="text-lg">Ofrecemos un servicio de calidad que supera expectativas.</p>
           </div>
-          <div className="flex-1 bg-orange-300 text-black p-6 rounded-lg flex flex-col items-center">
-            <img src={Pasion} alt="Pasión" className="w-40 h-40 object-cover rounded-lg mb-4" />
-            <h3 className="text-xl font-bold mb-4">PASIÓN</h3>
-            <p className="text-center">Trabajamos con entusiasmo para crear momentos inolvidables.</p>
+          <div className="bg-orange-300 p-8 rounded-xl shadow-lg hover:scale-105 transition duration-300 transform">
+            <FaFire className="text-6xl text-orange-700 mb-4 mx-auto" />
+            <h3 className="text-2xl font-bold">PASIÓN</h3>
+            <p className="text-lg">Trabajamos con entusiasmo para crear momentos inolvidables.</p>
           </div>
-          <div className="flex-1 bg-cyan-200 text-black p-6 rounded-lg flex flex-col items-center">
-            <img src={Confianza} alt="Confianza" className="w-40 h-40 object-cover rounded-lg mb-4" />
-            <h3 className="text-xl font-bold mb-4">CONFIANZA</h3>
-            <p className="text-center">Creamos experiencias únicas adaptadas a cada viajero.</p>
+          <div className="bg-cyan-200 p-8 rounded-xl shadow-lg hover:scale-105 transition duration-300 transform">
+            <FaUserCheck className="text-6xl text-cyan-700 mb-4 mx-auto" />
+            <h3 className="text-2xl font-bold">CONFIANZA</h3>
+            <p className="text-lg">Creamos experiencias únicas adaptadas a cada viajero.</p>
           </div>
         </div>
       </section>
 
-      <footer className="bg-cyan-200 text-black py-8 mt-auto px-4 md:px-16">
-        <div className="flex flex-col md:flex-row justify-between">
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16 px-6 md:px-16">
+        <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
-            <img src={Logo} alt="Wayra logo" className="h-20 mb-4" />
+            <img src={Logo} alt="Wayra logo" className="h-16 mb-4" />
             <h3 className="text-lg font-bold mb-2">Contáctanos</h3>
-            <p className="text-sm">Dirección: Calle 123, Bogotá, Colombia</p>
-            <p className="text-sm">Teléfono: +57 123 456 7890</p>
-            <p className="text-sm">Correo: contacto@wayra.com</p>
+            <p className="text-sm">📍 Calle 123, Bogotá, Colombia</p>
+            <p className="text-sm">📞 +57 123 456 7890</p>
+            <p className="text-sm">✉ contacto@wayra.com</p>
+          </div>
+          <div className="text-center">
+            <h3 className="text-lg font-bold mb-2">Síguenos</h3>
+            <div className="flex space-x-4">
+              <a href="#" className="text-2xl"><FaFacebook /></a>
+              <a href="#" className="text-2xl"><FaInstagram /></a>
+              <a href="#" className="text-2xl"><FaGithub /></a>
+            </div>
           </div>
         </div>
         <div className="text-center mt-8">
-          <p className="text-sm">© 2025 Wayra</p>
+          <p className="text-sm">© 2025 Wayra - Todos los derechos reservados.</p>
         </div>
       </footer>
+
     </div>
   );
 }

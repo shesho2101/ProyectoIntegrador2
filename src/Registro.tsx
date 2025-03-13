@@ -4,6 +4,8 @@ import Fondo from "./imagenes/playa.jpg";
 
 export default function Registro() {
   return (
+
+    
     <div className="relative h-screen w-full overflow-hidden">
  
       <div className="absolute inset-0 w-full h-full">
@@ -11,9 +13,17 @@ export default function Registro() {
       </div>
       
 
-      <div className="absolute top-4 left-4 z-10">
-        <img src={Logo} alt="Wayra logo" className="h-20" />
-      </div>
+      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-2 bg-white bg-opacity-20 backdrop-blur-md shadow-md">
+  <img src={Logo} alt="Logo de Wayra" className="h-12" />
+  <div className="flex space-x-6">
+    <Link to="/" className="text-lg font-semibold text-black transition duration-300">Inicio</Link>
+    <Link to="/nosotros" className="text-lg font-semibold text-black transition duration-300">Nosotros</Link>
+    <Link to="/vuelos" className="text-lg font-semibold text-black transition duration-300">Vuelos</Link>
+    <Link to="/hoteles" className="text-lg font-semibold text-black transition duration-300">Hoteles</Link>
+    <Link to="/bus" className="text-lg font-semibold text-black transition duration-300">Bus</Link>
+    <Link to="/contacto" className="text-lg font-semibold text-black transition duration-300">Contacto</Link>
+  </div>
+</nav>
       
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
 
