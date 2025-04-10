@@ -11,6 +11,7 @@ import Vuelos from "./vuelos";
 import Detalles from "./Detalles";
 import Recibos from "./Recibos";
 import InformacionHab from "./InfoHabitaciones";
+import Perfil from "./Perfil";
 
 
 // 📌 Verifica que "root" existe antes de usarlo
@@ -34,6 +35,7 @@ root.render(
         <Route path="/detalles" element={<Detalles />} />
         <Route path="/recibos" element={<Recibos />} />
         <Route path="/habitacion" element={<InformacionHab />} />
+        <Route path="/perfil" element={<Perfil />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
