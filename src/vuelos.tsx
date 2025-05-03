@@ -154,10 +154,10 @@ const initialFlights = [
 ];
 
 const Vuelos: React.FC = () => {
-  const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
+  const [selectedAirlines] = useState<string[]>([]);
   const [selectedStops, setSelectedStops] = useState<number[]>([]);
-  const [selectedClass, setSelectedClass] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState<number>(1000000);
+  const [selectedClass] = useState<string[]>([]);
+  const [maxPrice] = useState<number>(1000000);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFlight, setSelectedFlight] = useState<number | null>(null);
   const [departureRange, setDepartureRange] = useState<[number, number]>([0, 24]);
@@ -174,21 +174,10 @@ const Vuelos: React.FC = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const handleAirlineToggle = (airline: string) => {
-    setSelectedAirlines((prev) =>
-      prev.includes(airline) ? prev.filter((a) => a !== airline) : [...prev, airline]
-    );
-  };
 
   const handleStopsToggle = (stop: number) => {
     setSelectedStops((prev) =>
       prev.includes(stop) ? prev.filter((s) => s !== stop) : [...prev, stop]
-    );
-  };
-
-  const handleClassToggle = (cls: string) => {
-    setSelectedClass((prev) =>
-      prev.includes(cls) ? prev.filter((c) => c !== cls) : [...prev, cls]
     );
   };
 
