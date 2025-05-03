@@ -182,7 +182,6 @@ const Alojamientos: React.FC = () => {
               </button>
               <div className={`${theme === "dark" ? "bg-gray-900" : "bg-gray-100"} p-3`}>
                 <div className="font-bold">{`${destino.ciudad}, ${destino.nombre}`}</div>
-                <div className="text-xs text-gray-400">A N/A de distancia</div>
                 <div className="text-sm font-semibold mt-1">
                   ${destino.precio.toLocaleString("es-CO")}
                 </div>
