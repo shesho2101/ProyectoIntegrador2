@@ -153,7 +153,7 @@ const FAQ: React.FC = () => {
     setActiveIndex(activeIndex === index ? null : index);
   };
 
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme] = useState<"light" | "dark">("light");
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-gray-100 text-gray-900 font-sans">

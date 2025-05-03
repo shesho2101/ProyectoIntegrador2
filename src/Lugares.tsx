@@ -1,22 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import {
-  FaChevronRight,
-  FaFacebook,
-  FaGithub,
-  FaHeart,
-  FaInstagram,
-} from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { FaChevronRight, FaFacebook, FaGithub, FaHeart, FaInstagram } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { fetchHotels, Hotel } from "./services/api";
 import Logo from "./imagenes/Logo(sin fondo).png";
 
-interface Alojamientos {
-  ciudad: string;
-  region: string;
-  distancia: string;
-  precio: string;
-}
-
-// ChatBot
 type ChatMessage = { from: "user" | "bot"; text: string };
 
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
@@ -59,7 +46,9 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
         } ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
       >
         <div className="flex justify-end p-4">
-          <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
+          <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">
+            ✖
+          </button>
         </div>
         <div className="px-6 overflow-y-auto h-56 space-y-4">
           {messages.map((msg, idx) => (
@@ -97,25 +86,10 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   );
 };
 
-const destinos: Alojamientos[] = [
-  { ciudad: 'Piedecuesta', region: 'Colombia', distancia: '1040 km', precio: '$700.900' },
-  { ciudad: 'Catatumbo', region: 'Santander', distancia: '901 km', precio: '$700.900' },
-  { ciudad: 'Sopo', region: 'Cundinamarca', distancia: '778 km', precio: '$700.900' },
-  { ciudad: 'Cartagena', region: 'Atlantico', distancia: '994 km', precio: '$700.900' },
-  { ciudad: 'Santa Marta', region: 'Colombia', distancia: '507 km', precio: '$700.900' },
-  { ciudad: 'Medellin', region: 'Antioquia', distancia: '666 km', precio: '$700.900' },
-  { ciudad: 'Santa Marta', region: 'Colombia', distancia: '764 km', precio: '$700.900' },
-  { ciudad: 'Bogota', region: 'Colombia', distancia: '456 km', precio: '$700.900' },
-  { ciudad: 'Baru', region: 'Colombia', distancia: '789 km', precio: '$700.900' },
-  { ciudad: 'Barranquilla', region: 'Atlantico', distancia: '733 km', precio: '$700.900' },
-  { ciudad: 'Coveñas', region: 'Tolu', distancia: '234 km', precio: '$700.900' },
-  { ciudad: 'Coveñas', region: 'Sucre', distancia: '456 km', precio: '$700.900' },
-];
-
-
 const Alojamientos: React.FC = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -123,21 +97,35 @@ const Alojamientos: React.FC = () => {
     document.documentElement.classList.add(theme);
   }, [theme]);
 
-  const toggleChat = () => setIsChatOpen(!isChatOpen);
-  const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  useEffect(() => {
+    fetchHotels()
+      .then((data) => setHotels(data))
+      .catch(() => setError("No se pudieron cargar los alojamientos"));
+  }, []);
+
+  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   return (
-    <div className={`flex flex-col min-h-screen w-full transition-colors duration-300 font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-      
-      {/* Header */}
-      <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === 'dark' ? 'bg-gray-800 bg-opacity-80' : 'bg-white bg-opacity-80'}`}>
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+    <div
+      className={`flex flex-col min-h-screen w-full transition-colors duration-300 font-sans ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+      }`}
+    >
+      {/* Navbar */}
+      <nav
+        className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${
+          theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"
+        }`}
+      >
+        <img src={Logo} alt="Logo Wayra" className="h-16" />
         <div className="flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
             <Link
               key={item}
               to={`/${item.toLowerCase()}`}
-              className={`text-lg font-semibold transition duration-300 ${theme === 'dark' ? 'text-white hover:text-yellow-300' : 'text-black hover:text-yellow-600'}`}
+              className={`text-lg font-semibold transition duration-300 ${
+                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+              }`}
             >
               {item}
             </Link>
@@ -145,19 +133,23 @@ const Alojamientos: React.FC = () => {
         </div>
         <button
           onClick={toggleTheme}
-          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${theme === 'dark' ? 'border-white text-white hover:bg-gray-700' : 'border-black text-black hover:bg-gray-200'}`}
+          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${
+            theme === "dark"
+              ? "border-white text-white hover:bg-gray-700"
+              : "border-black text-black hover:bg-gray-200"
+          }`}
         >
-          {theme === 'dark' ? 'Modo Claro ☀️' : 'Modo Oscuro 🌙'}
+          {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
         </button>
       </nav>
 
       {/* Buscador */}
       <div className="container mx-auto px-4 py-4 mt-24">
-        <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md flex items-center p-2`}>
-          {['Destino', 'Salida', 'Llegada', 'Quienes'].map((label, idx) => (
+        <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md flex items-center p-2`}>
+          {["Destino", "Salida", "Llegada", "Quienes"].map((label, idx) => (
             <div key={idx} className="flex-1 border-r px-4 py-2">
               <div className="text-sm font-medium">{label}</div>
-              <div className="text-sm text-gray-400">{label === 'Quienes' ? 'Cuantos' : 'Lugar que deseas'}</div>
+              <div className="text-sm text-gray-400">Lugar que deseas</div>
             </div>
           ))}
           <div className="px-2">
@@ -168,29 +160,38 @@ const Alojamientos: React.FC = () => {
         </div>
       </div>
 
-      {/* Destinos */}
+      {/* Resultados */}
       <main className="container mx-auto px-4 py-4 flex-grow">
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {destinos.map((destino, index) => (
+          {hotels.map((destino, index) => (
             <div
               key={index}
-              className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-black'} rounded-lg shadow-md overflow-hidden relative cursor-pointer`}
-              onClick={() => navigate("/habitacion")}
-            >
+              className={`rounded-lg shadow-md overflow-hidden relative cursor-pointer ${
+                theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
+              }`}
+              onClick={() => navigate(`/habitacion/${destino._id}`)}
+              >
               <img
-                src={`https://placehold.co/400x200/EEE/31343C?text=${destino.region}`}
-                alt={`${destino.region}, ${destino.ciudad}`}
+                src={destino.imagenes[0] || `https://placehold.co/400x200/EEE/31343C?text=${destino.ciudad}`}
+                alt={destino.nombre}
                 className="w-full h-40 object-cover"
               />
               <button className="absolute top-2 right-2 text-red-500 bg-white rounded-full p-1 shadow-md">
                 <FaHeart />
               </button>
-              <div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'} p-3`}>
-                <div className="font-bold">{`${destino.region}, ${destino.ciudad}`}</div>
-                <div className="text-xs text-gray-400">
-                  A {destino.distancia} de distancia
+              <div className={`${theme === "dark" ? "bg-gray-900" : "bg-gray-100"} p-3`}>
+                <div className="font-bold">{`${destino.ciudad}, ${destino.nombre}`}</div>
+                <div className="text-xs text-gray-400">A N/A de distancia</div>
+                <div className="text-sm font-semibold mt-1">
+                  ${destino.precio.toLocaleString("es-CO")}
                 </div>
-                <div className="text-sm font-semibold mt-1">{destino.precio}</div>
+                <div className="mt-2 flex items-center space-x-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className={i < destino.rating ? "text-yellow-400" : "text-gray-400"}>★</span>
+                  ))}
+                  <span className="text-xs ml-1 text-gray-500">({destino.rating})</span>
+                </div>
               </div>
             </div>
           ))}
@@ -198,7 +199,7 @@ const Alojamientos: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white'} mt-auto py-8 px-6 md:px-12`}>
+      <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} mt-auto py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
             <img src={Logo} alt="Wayra logo" className="h-12 mb-2" />
@@ -220,11 +221,9 @@ const Alojamientos: React.FC = () => {
           <p className="text-sm">© 2025 Wayra - Todos los derechos reservados.</p>
         </div>
       </footer>
+
       <ChatBot theme={theme} />
-        </div>
-        
-      
-    
+    </div>
   );
 };
 

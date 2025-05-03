@@ -43,7 +43,7 @@ root.render(
         <Route path="/vuelos" element={<Vuelos />} />
         <Route path="/detalles" element={<Detalles />} />
         <Route path="/recibos" element={<Recibos />} />
-        <Route path="/habitacion" element={<InformacionHab />} />
+        <Route path="/habitacion/:id" element={<InformacionHab />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/alojamientos" element={<Alojamientos />} />
         <Route path="/FAQ" element={<FAQ />} />
