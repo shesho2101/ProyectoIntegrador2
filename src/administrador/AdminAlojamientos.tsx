@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-  FaChevronRight,
   FaFacebook,
   FaGithub,
-  FaHeart,
   FaInstagram,
 } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Logo from "../imagenes/Logo(sin fondo).png";
 
 interface Alojamientos {
@@ -97,7 +95,6 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
 };
 
 const AdminAlojamientos: React.FC = () => {
-  const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   const [searchTerm, setSearchTerm] = useState("");

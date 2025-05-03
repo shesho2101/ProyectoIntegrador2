@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Logo from "../imagenes/Logo(sin fondo).png";
 // ChatBot
 type ChatMessage = { from: "user" | "bot"; text: string };
@@ -154,17 +154,16 @@ const initialFlights = [
 ];
 
 const AdminVuelos: React.FC = () => {
-    const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
+    const [selectedAirlines] = useState<string[]>([]);
     const [selectedStops, setSelectedStops] = useState<number[]>([]);
-    const [selectedClass, setSelectedClass] = useState<string[]>([]);
-    const [maxPrice, setMaxPrice] = useState<number>(1000000);
+    const [selectedClass] = useState<string[]>([]);
+    const [maxPrice] = useState<number>(1000000);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedFlight, setSelectedFlight] = useState<number | null>(null);
     const [departureRange, setDepartureRange] = useState<[number, number]>([0, 24]);
     const [arrivalRange, setArrivalRange] = useState<[number, number]>([0, 24]);
     const [theme, setTheme] = useState<"light" | "dark">("light");
     const [flights, setFlights] = useState(initialFlights); // ✅ Estado dinámico
-    const navigate = useNavigate();
   
     useEffect(() => {
       document.documentElement.classList.remove("light", "dark");
@@ -180,11 +179,6 @@ const AdminVuelos: React.FC = () => {
       setFlights((prev) => prev.filter((flight) => flight.id !== id));
     };
   
-    const handleAirlineToggle = (airline: string) => {
-      setSelectedAirlines((prev) =>
-        prev.includes(airline) ? prev.filter((a) => a !== airline) : [...prev, airline]
-      );
-    };
   
     const handleStopsToggle = (stop: number) => {
       setSelectedStops((prev) =>
@@ -192,11 +186,6 @@ const AdminVuelos: React.FC = () => {
       );
     };
   
-    const handleClassToggle = (cls: string) => {
-      setSelectedClass((prev) =>
-        prev.includes(cls) ? prev.filter((c) => c !== cls) : [...prev, cls]
-      );
-    };
   
     const parseHour = (time: string): number => {
       const [hour] = time.split(":");

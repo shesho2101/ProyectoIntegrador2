@@ -2,10 +2,6 @@ import { Link } from "react-router-dom";
 import { JSX, useState } from "react";
 import Habitacion from "./imagenes/habitacion1.png";
 import {
-  FaStar,
-  FaUserCircle,
-  FaInfoCircle,
-  FaBars,
   FaArrowLeft,
   FaClock,
   FaReceipt,
@@ -98,7 +94,7 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
 
 // COMPONENTE PRINCIPAL
 export default function Detalles(): JSX.Element {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme] = useState<"light" | "dark">("light");
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-900 font-sans">
