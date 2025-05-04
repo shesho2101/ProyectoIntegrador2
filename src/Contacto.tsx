@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
+import { isLoggedIn } from "./services/auth";
 
 export default function Contacto() {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -57,15 +58,28 @@ export default function Contacto() {
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
         <div className="flex space-x-6 font-bold">
-          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
-            <Link
-              key={item}
-              to={`/${item.toLowerCase()}`}
-              className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
-            >
-              {item}
-            </Link>
-          ))}
+        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                {item}
+              </Link>
+            ))}
+
+            {isLoggedIn() && (
+              <Link
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                Perfil
+              </Link>
+            )}
         </div>
         <button
           onClick={toggleTheme}
