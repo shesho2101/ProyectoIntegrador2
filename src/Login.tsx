@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import Fondo from "./imagenes/login_fondo.jpg";
+import { loginUser } from "./services/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,20 +10,28 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!emailRegex.test(email)) {
       setError("Por favor ingresa un correo válido.");
       return;
     }
-
-    setError("");
-    navigate("/nosotros");
+  
+    try {
+      const data = await loginUser(email, password);
+      console.log("Login exitoso", data);
+  
+      // Ejemplo: guardar el token en localStorage
+      localStorage.setItem("token", data.token);
+  
+      // Redireccionar al home o dashboard
+      navigate("/nosotros");
+    } catch (err: any) {
+      setError(err.message || "Error desconocido");
+    }
   };
-
   return (
     <div className="relative w-full h-screen">
       <div className="absolute inset-0 w-full h-full">

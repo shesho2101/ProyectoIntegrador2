@@ -1,20 +1,34 @@
-import { Link } from "react-router-dom";
-import Logo from "./imagenes/Logo(sin fondo).png";
-import Fondo from "./imagenes/playa.jpg";
+import { useState } from "react";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { HiOutlineMail } from "react-icons/hi";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Logo from "./imagenes/Logo(sin fondo).png";
+import Fondo from "./imagenes/playa.jpg";
+
+// Función para registrar usuario
+async function registerUser(nombre: string, email: string, password: string) {
+  const res = await fetch("https://wayra.up.railway.app/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre, email, password }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al registrar");
+  }
+
+  return res.json();
+}
+
 // ChatBot
 type ChatMessage = { from: "user" | "bot"; text: string };
-
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" },
   ]);
   const [inputValue, setInputValue] = useState("");
-
   const toggleChat = () => setIsChatOpen(!isChatOpen);
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -23,7 +37,6 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
     const userMessage: ChatMessage = { from: "user", text: inputValue.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-
     setTimeout(() => {
       const botReply: ChatMessage = {
         from: "bot",
@@ -86,9 +99,26 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   );
 };
 
-
+// COMPONENTE REGISTRO
 export default function Registro() {
-  const theme: "light" | "dark" = "light"; // Define the theme variable
+  const theme: "light" | "dark" = "light";
+  const navigate = useNavigate();
+
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mensaje, setMensaje] = useState("");
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await registerUser(nombre, email, password);
+      setMensaje("¡Usuario registrado exitosamente! Redirigiendo...");
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (err: any) {
+      setMensaje(err.message || "Error al registrar");
+    }
+  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -122,24 +152,49 @@ export default function Registro() {
           </p>
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Crea tu cuenta</h2>
 
-          {/* Botones de opciones */}
+          {/* Botones sociales */}
           <div className="flex flex-col space-y-4">
             <button className="flex items-center justify-center border border-gray-300 text-black py-3 rounded-full hover:bg-gray-100 transition">
               <FaFacebook className="text-blue-600 text-xl mr-3" />
               Registrarse con Facebook
             </button>
-
             <button className="flex items-center justify-center border border-gray-300 text-black py-3 rounded-full hover:bg-gray-100 transition">
               <FcGoogle className="text-xl mr-3" />
               Acceder con Google
             </button>
-
-            <button className="flex items-center justify-center border border-gray-300 text-black py-3 rounded-full hover:bg-gray-100 transition">
-  <HiOutlineMail className="text-xl mr-3" />
-  Registrarse con un email
-</button>
-
           </div>
+
+          {/* Formulario de registro */}
+          <form className="space-y-4 mt-6" onSubmit={handleRegister}>
+            <input
+              type="text"
+              placeholder="Nombre completo"
+              className="w-full py-3 px-4 rounded-full border border-gray-300"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              className="w-full py-3 px-4 rounded-full border border-gray-300"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              className="w-full py-3 px-4 rounded-full border border-gray-300"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="w-full bg-yellow-300 text-black py-3 rounded-full hover:bg-yellow-400 transition"
+            >
+              Crear cuenta
+            </button>
+            {mensaje && <p className="text-center text-sm mt-2 text-red-500">{mensaje}</p>}
+          </form>
         </div>
         <ChatBot theme={theme} />
       </div>
