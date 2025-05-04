@@ -7,7 +7,7 @@ import Fondo from "./imagenes/playa.jpg";
 
 // Función para registrar usuario
 async function registerUser(nombre: string, email: string, password: string) {
-  const res = await fetch("https://wayra.up.railway.app/api/auth/register", {
+  const res = await fetch("https://wayraback.up.railway.app/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nombre, email, password }),
