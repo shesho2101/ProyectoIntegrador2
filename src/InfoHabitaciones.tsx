@@ -1,21 +1,14 @@
-import { JSX, useState } from "react";
-import {
-  FaFacebook,
-  FaGithub,
-  FaInstagram,
-  FaStar
-} from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import Habitacion from "./imagenes/habitacion1.png";
+import { useEffect, useState } from "react";
+import { FaCommentDots, FaConciergeBell, FaDollarSign, FaFacebook, FaGithub, FaInstagram, FaMapMarkerAlt, FaStar, FaTimesCircle } from "react-icons/fa";
+import { Link, useParams } from "react-router-dom";
+import { getHotelById } from "../src/services/api";
 import Logo from "./imagenes/Logo(sin fondo).png";
-// ChatBot
-type ChatMessage = { from: "user" | "bot"; text: string };
+import { isLoggedIn } from "./services/auth";
 
+// ChatBot
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" },
-  ]);
+  const [messages, setMessages] = useState([{ from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" }]);
   const [inputValue, setInputValue] = useState("");
 
   const toggleChat = () => setIsChatOpen(!isChatOpen);
@@ -23,15 +16,11 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    const userMessage: ChatMessage = { from: "user", text: inputValue.trim() };
+    const userMessage = { from: "user", text: inputValue.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-
     setTimeout(() => {
-      const botReply: ChatMessage = {
-        from: "bot",
-        text: "Gracias por tu mensaje. Pronto te responderemos. ✈️",
-      };
+      const botReply = { from: "bot", text: "Gracias por tu mensaje. Pronto te responderemos. ✈️" };
       setMessages((prev) => [...prev, botReply]);
     }, 800);
   };
@@ -40,33 +29,19 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
     <>
       <div
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer transition transform hover:scale-105"
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer hover:scale-105 transition"
       >
         <span className="text-xl">💬</span>
       </div>
-
       <div
-        className={`fixed bottom-0 right-0 w-full md:w-96 overflow-hidden rounded-t-3xl shadow-xl transition-all duration-300 z-50 ${
-          theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
-        } ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
+        className={`fixed bottom-0 right-0 w-full md:w-96 rounded-t-3xl shadow-xl z-50 transition-all duration-300 overflow-hidden ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
       >
         <div className="flex justify-end p-4">
           <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
         </div>
-        <div className="px-6 overflow-y-auto h-56 space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`p-3 rounded-lg max-w-xs ${
-                msg.from === "user"
-                  ? "bg-yellow-400 self-end text-gray-900"
-                  : theme === "dark"
-                  ? "bg-gray-700 text-white"
-                  : "bg-gray-200 text-black"
-              }`}
-            >
-              <p>{msg.text}</p>
-            </div>
+        <div className="px-6 h-56 overflow-y-auto space-y-4">
+          {messages.map((msg, i) => (
+            <div key={i} className={`p-3 rounded-lg max-w-xs ${msg.from === "user" ? "bg-yellow-400 self-end text-gray-900" : theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-black"}`}>{msg.text}</div>
           ))}
         </div>
         <div className="px-6 py-4">
@@ -76,11 +51,7 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Escribe tu mensaje..."
-              className={`w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
-                theme === "dark"
-                  ? "bg-gray-700 text-white border-gray-500"
-                  : "bg-white text-black border-gray-300"
-              }`}
+              className={`w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${theme === "dark" ? "bg-gray-700 text-white border-gray-500" : "bg-white text-black border-gray-300"}`}
             />
           </form>
         </div>
@@ -89,178 +60,115 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   );
 };
 
-// Simulación de reseñas desde backend
-const initialReviews = [
-  {
-    nombre: "Alex Daniel Montañez",
-    tipo: "Estudiante",
-    comentario: "Pésimo servicio, no me aceptaron el pago a cuotas.",
-    avatar: "https://placehold.co/40x40/cccccc/333333?text=AD"
-  },
-  {
-    nombre: "Laura Rodríguez",
-    tipo: "Turista",
-    comentario: "El lugar es hermoso y cómodo, volveré pronto.",
-    avatar: "https://placehold.co/40x40/cccccc/333333?text=LR"
-  },
-  {
-    nombre: "Carlos Pérez",
-    tipo: "Viajero frecuente",
-    comentario: "La vista al mar es impresionante, muy recomendado.",
-    avatar: "https://placehold.co/40x40/cccccc/333333?text=CP"
-  }
-];
-
-export default function Loft(): JSX.Element {
-  const navigate = useNavigate();
-
-  const [fechaLlegada, setFechaLlegada] = useState("1/05/2024");
-  const [fechaSalida, setFechaSalida] = useState("7/05/2024");
-  const [personas, setPersonas] = useState(2);
-  const [reseñas, setReseñas] = useState(initialReviews);
-
+export default function InfoHabitaciones() {
+  const { id } = useParams();
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [hotel, setHotel] = useState<any>(null);
+
+  useEffect(() => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (id) {
+      getHotelById(id).then(setHotel).catch(console.error);
+    }
+  }, [id]);
+
+  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+
+  if (!hotel) return <div className="mt-32 text-center">Cargando...</div>;
 
   return (
-    <div className="font-sans bg-white min-h-screen flex flex-col">
-      {/* Header */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-80 backdrop-blur-md shadow-md">
+    <div className={`min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
         <div className="flex space-x-6 font-bold">
-          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
-            <Link
-              key={item}
-              to={`/${item.toLowerCase()}`}
-              className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
-            >
-              {item}
-            </Link>
-          ))}
+        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+  <Link
+    key={item}
+    to={`/${item.toLowerCase()}`}
+    className={`text-lg font-semibold transition duration-300 ${
+      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+    }`}
+  >
+    {item}
+  </Link>
+))}
+
+{isLoggedIn() && (
+  <Link
+    to="/perfil"
+    className={`text-lg font-semibold transition duration-300 ${
+      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+    }`}
+  >
+    Perfil
+  </Link>
+)}
+
         </div>
+        <button
+          onClick={toggleTheme}
+          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}
+        >
+          {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
+        </button>
       </nav>
 
       <div className="h-24" />
 
-      {/* Main Content */}
-      <main className="p-6 w-full">
-        <h1 className="text-4xl font-bold text-gray-900 mb-6">
-          Loft frente a la playa Cartagena, Colombia
-        </h1>
+      <main className="px-4 md:px-16 py-8">
+        <h1 className="text-4xl font-extrabold mb-2">{hotel.nombre}</h1>
+        <p className="text-lg text-gray-500 mb-6">{hotel.descripcion}</p>
 
-        {/* Galería */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          {[...Array(4)].map((_, i) => (
-            <img
-              key={i}
-              src={Habitacion}
-              alt={`Imagen ${i + 1}`}
-              className={`w-full ${i < 2 ? "h-48" : "h-32"} object-cover rounded-lg shadow-lg`}
-            />
-          ))}
+        <img
+          src={hotel.imagenes[0]}
+          alt={hotel.nombre}
+          className="w-full max-h-[500px] object-cover rounded-xl shadow-md mb-8"
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gray-800 text-white p-4 rounded shadow-md flex items-center">
+            <FaMapMarkerAlt className="text-pink-500 mr-2" /> <span><strong>Ciudad:</strong> {hotel.ciudad}</span>
+          </div>
+          <div className="bg-gray-800 text-white p-4 rounded shadow-md flex items-center">
+            <FaDollarSign className="text-green-500 mr-2" /> <span><strong>Precio por noche:</strong> ${hotel.precio}</span>
+          </div>
+          <div className="bg-gray-800 text-white p-4 rounded shadow-md flex items-center">
+            <FaStar className="text-yellow-500 mr-2" /> <span><strong>Rating:</strong> {hotel.rating}</span>
+          </div>
         </div>
 
-        {/* Descripción */}
-        <section className="mb-6">
-          <h2 className="font-medium text-2xl text-gray-800 mb-4">Descripción del alojamiento</h2>
-          <p className="text-lg text-gray-600 mb-4">
-            Un paraíso costero, este alojamiento frente a la playa combina lujo y tranquilidad en un entorno de ensueño.
-            Ubicado a pasos del mar cristalino y la arena dorada.
-          </p>
-          <p className="text-lg text-gray-600">
-            La decoración mezcla elegancia y confort, con muebles de madera, textiles suaves y toques inspirados en el mar.
-          </p>
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold flex items-center mb-2"><FaConciergeBell className="mr-2" />Servicios</h2>
+          {hotel.facilidades.length > 0 ? (
+            <ul className="list-disc ml-6 text-lg">
+              {hotel.facilidades.map((servicio: string, i: number) => (
+                <li key={i}>{servicio}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-red-500 flex items-center"><FaTimesCircle className="mr-2" />No hay servicios brindados.</p>
+          )}
         </section>
 
-        {/* Servicios */}
-        <section className="mb-6">
-          <h2 className="font-medium text-2xl text-gray-800 mb-4">Servicios que ofrecemos</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              ["fas fa-wifi", "Wifi"],
-              ["fas fa-paw", "Mascotas"],
-              ["fas fa-coffee", "Desayuno"],
-              ["fas fa-smoking", "Fumar"],
-              ["fas fa-parking", "Estacionamiento"],
-              ["fas fa-swimming-pool", "Piscina"],
-              ["fas fa-umbrella-beach", "Vista a la playa"]
-            ].map(([icon, label], i) => (
-              <div className="flex items-center space-x-2" key={i}>
-                <i className={`${icon} text-gray-600`} />
-                <span className="text-lg text-gray-700">{label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Calificación */}
-        <section className="mb-6">
-          <h2 className="font-medium text-2xl text-gray-800 mb-4">Calificación</h2>
-          <div className="bg-gray-100 p-4 rounded-lg shadow-sm mb-4">
-            <div className="flex items-center mb-2">
-              {[...Array(4)].map((_, i) => <FaStar key={i} className="text-yellow-500" />)}
-              <FaStar className="text-gray-400" />
-            </div>
-            <div className="text-lg text-gray-800">4.5 / 5 (120 reseñas)</div>
-          </div>
-        </section>
-
-        {/* Reservar */}
-        <section className="mb-6 border rounded-lg shadow-lg p-4 bg-white">
-  <div className="flex justify-between items-center mb-2">
-    <span className="text-2xl font-bold text-teal-700">[precio desde backend]</span>
-    <span className="text-sm text-gray-500">por noche</span>
-  </div>
-
-  <div className="grid grid-cols-2 gap-4 mb-4">
-    <div className="border rounded p-2">
-      <div className="text-sm text-gray-500">Llegada</div>
-      <div className="text-lg">[fecha de ingreso]</div>
-    </div>
-    <div className="border rounded p-2">
-      <div className="text-sm text-gray-500">Salida</div>
-      <div className="text-lg">[fecha de salida]</div>
-    </div>
-  </div>
-
-  <div className="border rounded p-3 mb-4">
-    <div className="text-xs text-gray-500">Personas</div>
-    <div className="text-sm">[cantidad de huéspedes]</div>
-  </div>
-
-  <button
-    className="w-full bg-teal-500 text-white py-3 rounded-lg hover:bg-teal-600 transition text-sm"
-    onClick={() => navigate("/detalles")}
-  >
-    Reservar
-  </button>
-</section>
-
-        {/* Reseñas */}
-        <section className="mb-6">
-          <h2 className="font-medium text-2xl text-gray-800 mb-4">Reseñas de clientes</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {reseñas.map((resena, index) => (
-              <div key={index} className="bg-gray-100 p-4 rounded-lg shadow-sm">
-                <div className="flex items-center mb-2">
-                  <img
-                    src={resena.avatar}
-                    alt={resena.nombre}
-                    className="w-8 h-8 rounded-full mr-2"
-                  />
-                  <div>
-                    <div className="text-lg font-medium">{resena.nombre}</div>
-                    <div className="text-sm text-gray-500">{resena.tipo}</div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-700">{resena.comentario}</p>
-              </div>
-            ))}
-          </div>
+        <section>
+          <h2 className="text-2xl font-bold flex items-center mb-2"><FaCommentDots className="mr-2" />Opiniones</h2>
+          {hotel.opiniones.length > 0 ? (
+            <ul className="list-disc ml-6 text-lg">
+              {hotel.opiniones.map((op: string, i: number) => (
+                <li key={i}>{op}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-red-500 flex items-center"><FaTimesCircle className="mr-2" />No hay opiniones disponibles.</p>
+          )}
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 px-6 md:px-12">
+      <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
             <img src={Logo} alt="Wayra logo" className="h-12 mb-2" />
@@ -282,6 +190,7 @@ export default function Loft(): JSX.Element {
           <p className="text-sm">© 2025 Wayra - Todos los derechos reservados.</p>
         </div>
       </footer>
+
       <ChatBot theme={theme} />
     </div>
   );

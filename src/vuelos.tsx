@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
+import { isLoggedIn } from "./services/auth";
 // ChatBot
 type ChatMessage = { from: "user" | "bot"; text: string };
 
@@ -154,10 +155,10 @@ const initialFlights = [
 ];
 
 const Vuelos: React.FC = () => {
-  const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
+  const [selectedAirlines] = useState<string[]>([]);
   const [selectedStops, setSelectedStops] = useState<number[]>([]);
-  const [selectedClass, setSelectedClass] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState<number>(1000000);
+  const [selectedClass] = useState<string[]>([]);
+  const [maxPrice] = useState<number>(1000000);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFlight, setSelectedFlight] = useState<number | null>(null);
   const [departureRange, setDepartureRange] = useState<[number, number]>([0, 24]);
@@ -174,21 +175,10 @@ const Vuelos: React.FC = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const handleAirlineToggle = (airline: string) => {
-    setSelectedAirlines((prev) =>
-      prev.includes(airline) ? prev.filter((a) => a !== airline) : [...prev, airline]
-    );
-  };
 
   const handleStopsToggle = (stop: number) => {
     setSelectedStops((prev) =>
       prev.includes(stop) ? prev.filter((s) => s !== stop) : [...prev, stop]
-    );
-  };
-
-  const handleClassToggle = (cls: string) => {
-    setSelectedClass((prev) =>
-      prev.includes(cls) ? prev.filter((c) => c !== cls) : [...prev, cls]
     );
   };
 
@@ -242,17 +232,28 @@ const Vuelos: React.FC = () => {
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
         <div className="flex space-x-6 font-bold">
-          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
-            <Link
-              key={item}
-              to={`/${item.toLowerCase()}`}
-              className={`text-lg font-semibold transition duration-300 ${
-                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-              }`}
-            >
-              {item}
-            </Link>
-          ))}
+        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                {item}
+              </Link>
+            ))}
+
+            {isLoggedIn() && (
+              <Link
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                Perfil
+              </Link>
+            )}
         </div>
         <button
           onClick={toggleTheme}
