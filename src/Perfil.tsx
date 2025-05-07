@@ -115,7 +115,9 @@ export default function Perfil() {
   return (
     <>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+         <Link to="/">
+          <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
             <Link

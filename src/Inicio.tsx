@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import Logo from "./imagenes/Logo(sin fondo).png";
 import Cartagena from "../public/imagenes/cartagena.jpg";
 import Mar from "../public/imagenes/mar.jpg";
 import Paisaje from "../public/imagenes/paisaje.jpg";
+import Logo from "./imagenes/Logo(sin fondo).png";
+import { isLoggedIn } from "./services/auth"; // Asegúrate de que esta función esté importada correctamente
 
 const images = [
   { src: Cartagena, alt: "Vista de Cartagena, Colombia" },
@@ -21,7 +22,6 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
     { from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" },
   ]);
   const [inputValue, setInputValue] = useState("");
-
   const toggleChat = () => setIsChatOpen(!isChatOpen);
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -30,7 +30,6 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
     const userMessage: ChatMessage = { from: "user", text: inputValue.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-
     setTimeout(() => {
       const botReply: ChatMessage = {
         from: "bot",
@@ -115,22 +114,54 @@ export default function Inicio() {
         />
       </div>
 
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-80 backdrop-blur-md shadow-md">
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        <div className="flex space-x-6 font-bold">
-          {["Registro", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-            <Link
-              key={item}
-              to={`/${item.toLowerCase()}`}
-              className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
-            >
-              {item}
-            </Link>
-          ))}
-        </div>
-      </nav>
+{/* Navbar */}
+<nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
+    <Link to="/">
+      <img src={Logo} alt="Logo de Wayra" className="h-16" />
+    </Link>
+  <div className="flex space-x-6 font-bold">
+    {["Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+      <Link
+        key={item}
+        to={`/${item.toLowerCase()}`}
+        className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
+      >
+        {item}
+      </Link>
+    ))}
+  </div>
 
+  {/* Contenedor para los botones de "Perfil", "Carrito" y "Registro" centrados */}
+  <div className="flex items-center space-x-6">
+    {/* Mostrar "Registrarse" solo si no está logueado */}
+    {!isLoggedIn() && (
+      <Link
+        to="/registro"
+        className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
+      >
+        Registrarse
+      </Link>
+    )}
+
+    {/* Mostrar "Perfil" y "Carrito" si está logueado */}
+    {isLoggedIn() && (
+      <>
+        <Link
+          to="/perfil"
+          className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
+        >
+          Perfil
+        </Link>
+        <Link
+          to="/carrito"
+          className="text-2xl text-black hover:text-yellow-600 transition duration-300"
+        >
+          🛒
+        </Link>
+      </>
+    )}
+  </div>
+</nav>
       {/* Contenido principal */}
       <div className="relative z-10 flex flex-col md:flex-row h-full pt-24 px-8">
         {/* Introducción */}
@@ -145,7 +176,7 @@ export default function Inicio() {
             to="/nosotros"
             className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg font-medium text-lg transition-transform transform hover:scale-105 shadow-lg"
           >
-            Conoce más 
+            Conoce más
           </Link>
         </div>
 

@@ -1,4 +1,3 @@
-// src/Carrito.tsx
 import { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,9 +7,41 @@ import { isLoggedIn } from "./services/auth";
 const Carrito = () => {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [cantidad, setCantidad] = useState(1);
-  const precioUnitario = 1000;
-  const total = cantidad * precioUnitario;
+  
+  // Estado para manejar el carrito (productos)
+  const [productos, setProductos] = useState([
+    { id: 1, nombre: "Paquete del mes", cantidad: 1, precio: 1000 }
+  ]);
+  
+  // Función para incrementar la cantidad
+  const incrementar = (id: number) => {
+    setProductos(prevProductos =>
+      prevProductos.map(producto =>
+        producto.id === id
+          ? { ...producto, cantidad: producto.cantidad + 1 }
+          : producto
+      )
+    );
+  };
+
+  // Función para decrementar la cantidad
+  const decrementar = (id: number) => {
+    setProductos(prevProductos =>
+      prevProductos.map(producto =>
+        producto.id === id && producto.cantidad > 1
+          ? { ...producto, cantidad: producto.cantidad - 1 }
+          : producto
+      )
+    );
+  };
+
+  // Función para eliminar el producto del carrito
+  const eliminarProducto = (id: number) => {
+    setProductos(prevProductos => prevProductos.filter(producto => producto.id !== id));
+  };
+
+  // Calcular el total
+  const total = productos.reduce((acc, producto) => acc + producto.precio * producto.cantidad, 0);
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
@@ -20,65 +51,68 @@ const Carrito = () => {
 
   const toggleTheme = () => setTheme(prev => (prev === "light" ? "dark" : "light"));
 
-  const incrementar = () => setCantidad(c => c + 1);
-  const decrementar = () => setCantidad(c => (c > 1 ? c - 1 : 1));
-
   return (
     <div className={`min-h-screen flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-        <img src={Logo} alt="Wayra logo" className="h-16" />
+            <Link to="/">
+        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link key={item} to={`/${item.toLowerCase()}`} className={`text-lg font-semibold ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>{item}</Link>
           ))}
-                {isLoggedIn() && (
-                <>
-                    <Link
-                    to="/perfil"
-                    className={`text-lg font-semibold transition duration-300 ${
-                        theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    >
-                    Perfil
-                    </Link>
-                    <Link
-                    to="/carrito"
-                    className={`text-2xl transition duration-300 ${
-                        theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    title="Ver carrito"
-                    >
-                    🛒
-                    </Link>
-                </>
-                )}
-                {/* Mostrar "Registrarse" solo si no está logueado */}
+          {isLoggedIn() && (
+            <>
+              <Link
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                Perfil
+              </Link>
+              <Link
+                to="/carrito"
+                className={`text-2xl transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+                title="Ver carrito"
+              >
+                🛒
+              </Link>
+            </>
+          )}
           {!isLoggedIn() && (
             <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
               Registrarse
             </Link>
           )}
-
         </div>
         <button onClick={toggleTheme} className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}>{theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}</button>
       </nav>
 
-      <main className="mt-28 mb-20 px-6 md:px-20 flex flex-col md:flex-row gap-12">
+      <main className="flex-1 mt-28 mb-20 px-6 md:px-20 flex flex-col md:flex-row gap-12">
         <section className="flex-1">
           <h2 className="text-2xl font-bold mb-4 border-b pb-2">Mi carrito</h2>
-          <div className="flex items-center justify-between border-b pb-4">
-            <div className="flex-1 ml-4">
-              <h3 className="font-semibold">Paquete del mes</h3>
-              <p className="text-sm text-gray-500">${precioUnitario.toFixed(2)}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={decrementar} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">-</button>
-              <span>{cantidad}</span>
-              <button onClick={incrementar} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">+</button>
-            </div>
-            <p className="w-24 text-right font-semibold">${total.toFixed(2)}</p>
-            <button className="ml-4 text-xl text-red-500 hover:text-red-700">×</button>
-          </div>
+          {productos.length === 0 ? (
+            <p className="text-lg font-semibold text-gray-500">Tu carrito está vacío</p>
+          ) : (
+            productos.map((producto) => (
+              <div key={producto.id} className="flex items-center justify-between border-b pb-4">
+                <div className="flex-1 ml-4">
+                  <h3 className="font-semibold">{producto.nombre}</h3>
+                  <p className="text-sm text-gray-500">${producto.precio.toFixed(2)}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => decrementar(producto.id)} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">-</button>
+                  <span>{producto.cantidad}</span>
+                  <button onClick={() => incrementar(producto.id)} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">+</button>
+                </div>
+                <p className="w-24 text-right font-semibold">${(producto.precio * producto.cantidad).toFixed(2)}</p>
+                <button onClick={() => eliminarProducto(producto.id)} className="ml-4 text-xl text-red-500 hover:text-red-700">×</button>
+              </div>
+            ))
+          )}
         </section>
 
         <aside className="w-full md:w-1/3 border rounded-lg p-6 shadow-md">
@@ -99,7 +133,9 @@ const Carrito = () => {
       <footer className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-900"} text-white py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
-            <img src={Logo} alt="Wayra logo" className="h-12 mb-2" />
+            <Link to="/">
+                <img src={Logo} alt="Logo de Wayra" className="h-16" />
+                </Link>
             <h3 className="text-base font-bold mb-1">Contáctanos</h3>
             <p className="text-sm">Calle 123, Bogotá, Colombia</p>
             <p className="text-sm">+57 123 456 7890</p>
