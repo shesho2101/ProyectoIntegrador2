@@ -1,7 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import AdminAlojamientos from "./administrador/AdminAlojamientos";
+import AdminBus from "./administrador/BusAdmin";
+import PerfilAdmin from "./administrador/PerfilAdmin";
+import AdminVuelos from "./administrador/VuelosAdmin";
 import Bus from "./Bus";
+import Carrito from "./Carrito";
 import Contacto from "./Contacto";
 import Detalles from "./Detalles";
 import FAQ from "./Faq";
@@ -17,10 +22,6 @@ import Recibos from "./Recibos";
 import Registro from "./Registro";
 import Transaccion from "./transaccion";
 import Vuelos from "./vuelos";
-import AdminAlojamientos from "./administrador/AdminAlojamientos";
-import PerfilAdmin from "./administrador/PerfilAdmin";
-import AdminVuelos from "./administrador/VuelosAdmin";
-import AdminBus from "./administrador/BusAdmin";
 
 
 const rootElement = document.getElementById("root");
@@ -54,6 +55,8 @@ root.render(
         <Route path="/adminperfil" element={<PerfilAdmin />} />
         <Route path="/adminvuelos" element={<AdminVuelos />} />
         <Route path="/adminbus" element={<AdminBus />} />
+        <Route path="/carrito" element={<Carrito />} />
+
 
 
       </Routes>
