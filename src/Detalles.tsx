@@ -114,18 +114,33 @@ export default function Detalles(): JSX.Element {
     {item}
   </Link>
 ))}
-
-{isLoggedIn() && (
-  <Link
-    to="/perfil"
-    className={`text-lg font-semibold transition duration-300 ${
-      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-    }`}
-  >
-    Perfil
-  </Link>
-)}
-
+      {isLoggedIn() && (
+        <>
+          <Link
+            to="/perfil"
+            className={`text-lg font-semibold transition duration-300 ${
+              theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+            }`}
+          >
+            Perfil
+          </Link>
+          <Link
+            to="/carrito"
+            className={`text-2xl transition duration-300 ${
+              theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+            }`}
+            title="Ver carrito"
+          >
+            🛒
+          </Link>
+        </>
+      )}
+      {/* Mostrar "Registrarse" solo si no está logueado */}
+      {!isLoggedIn() && (
+            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
+              Registrarse
+            </Link>
+          )}
         </div>
       </nav>
 
