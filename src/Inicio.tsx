@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight, FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import Logo from "./imagenes/Logo(sin fondo).png";
 import Cartagena from "../public/imagenes/cartagena.jpg";
 import Mar from "../public/imagenes/mar.jpg";
 import Paisaje from "../public/imagenes/paisaje.jpg";
+import Logo from "./imagenes/Logo(sin fondo).png";
+import { isLoggedIn } from "./services/auth"; // Asegúrate de que esta función esté importada correctamente
 
 const images = [
   { src: Cartagena, alt: "Vista de Cartagena, Colombia" },
@@ -118,7 +119,9 @@ export default function Inicio() {
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        <Link to="/">
+          <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6 font-bold hidden md:flex">
           {["Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link
@@ -155,7 +158,7 @@ export default function Inicio() {
         )}
       </nav>
 
-      {/* Content */}
+      {/* Contenido principal */}
       <div className="relative z-10 flex flex-col md:flex-row h-full pt-24 px-8">
         <div className="w-full md:w-1/2 flex flex-col justify-center animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-md">
