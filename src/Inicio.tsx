@@ -2,17 +2,22 @@ import { useState } from "react";
 import { FaChevronLeft, FaChevronRight, FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
-import { isLoggedIn } from "./services/auth";
+import Cartagena from "../public/imagenes/cartagena.jpg";
+import Mar from "../public/imagenes/mar.jpg";
+import Paisaje from "../public/imagenes/paisaje.jpg";
 
 const images = [
-  { src: "/imagenes/cartagena.jpg", alt: "Vista de Cartagena, Colombia" },
-  { src: "/imagenes/mar.jpg", alt: "Vista del mar colombiano" },
-  { src: "/imagenes/paisaje.jpg", alt: "Paisaje natural en Colombia" },
+  { src: Cartagena, alt: "Vista de Cartagena, Colombia" },
+  { src: Mar, alt: "Vista del mar colombiano" },
+  { src: Paisaje, alt: "Paisaje natural en Colombia" },
 ];
+
+// ChatBot
+type ChatMessage = { from: "user" | "bot"; text: string };
 
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -22,11 +27,12 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    const userMessage = { from: "user", text: inputValue.trim() };
+    const userMessage: ChatMessage = { from: "user", text: inputValue.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+
     setTimeout(() => {
-      const botReply = {
+      const botReply: ChatMessage = {
         from: "bot",
         text: "Gracias por tu mensaje. Pronto te responderemos. ✈️",
       };
@@ -49,9 +55,7 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
         } ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
       >
         <div className="flex justify-end p-4">
-          <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">
-            ✖
-          </button>
+          <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
         </div>
         <div className="px-6 overflow-y-auto h-56 space-y-4">
           {messages.map((msg, idx) => (
@@ -114,10 +118,7 @@ export default function Inicio() {
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
-        <Link to="/">
-          <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        </Link>
-
+        <img src={Logo} alt="Logo de Wayra" className="h-16" />
         <div className="flex space-x-6 font-bold hidden md:flex">
           {["Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link
@@ -152,33 +153,6 @@ export default function Inicio() {
             ))}
           </div>
         )}
-
-        {/* Buttons for Logged-in Users */}
-        <div className="flex items-center space-x-6">
-          {!isLoggedIn() ? (
-            <Link
-              to="/registro"
-              className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
-            >
-              Registrarse
-            </Link>
-          ) : (
-            <>
-              <Link
-                to="/perfil"
-                className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
-              >
-                Perfil
-              </Link>
-              <Link
-                to="/carrito"
-                className="text-2xl text-black hover:text-yellow-600 transition duration-300"
-              >
-                🛒
-              </Link>
-            </>
-          )}
-        </div>
       </nav>
 
       {/* Content */}
