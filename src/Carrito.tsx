@@ -1,4 +1,3 @@
-// src/Carrito.tsx
 import { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,20 +7,104 @@ import { isLoggedIn } from "./services/auth";
 const Carrito = () => {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [cantidad, setCantidad] = useState(1);
-  const precioUnitario = 1000;
-  const total = cantidad * precioUnitario;
+  const [carrito, setCarrito] = useState<any>(null); // Aquí almacenaremos el carrito
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
     if (!isLoggedIn()) navigate("/login");
+
+    // Obtener el carrito del usuario
+    const fetchCarrito = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const usuarioId = localStorage.getItem("userId");  // Obtener el userId desde localStorage
+
+        console.log("userId desde localStorage:", usuarioId);  // Verificación
+
+        if (!usuarioId) {
+          alert("No se ha encontrado el ID de usuario. Por favor, inicie sesión.");
+          navigate("/login");
+          return;
+        }
+
+        const res = await fetch(`http://localhost:2401/api/cart/${usuarioId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 403) {
+          alert("Acceso denegado. No puedes ver el carrito.");
+          return;
+        }
+
+        const data = await res.json();
+        setCarrito(data);
+
+        // Calcular el total del carrito
+        let totalCarrito = data.productos.reduce((acc: number, product: any) => acc + product.precio_total, 0);
+        setTotal(totalCarrito);
+      } catch (error) {
+        console.error("Error al obtener el carrito:", error);
+      }
+    };
+    fetchCarrito();
   }, [theme, navigate]);
 
-  const toggleTheme = () => setTheme(prev => (prev === "light" ? "dark" : "light"));
+  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
-  const incrementar = () => setCantidad(c => c + 1);
-  const decrementar = () => setCantidad(c => (c > 1 ? c - 1 : 1));
+  // Eliminar un producto del carrito
+  const handleEliminarDelCarrito = async (producto_id: string) => {
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");
+    try {
+      const res = await fetch(`http://localhost:2401/api/cart/${usuarioId}/${producto_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      setCarrito(data);  // Actualizamos el carrito con la respuesta del servidor
+      alert("✅ ¡Producto eliminado del carrito!");
+    } catch (error) {
+      alert("❌ Error al eliminar el producto.");
+      console.error(error);
+    }
+  };
+
+  // Actualizar la cantidad de un producto en el carrito
+  const handleActualizarCantidad = async (producto_id: string, cantidad: number) => {
+    if (cantidad <= 0) {
+      alert("La cantidad debe ser mayor que 0.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");
+
+    try {
+      const res = await fetch(`http://localhost:2401/api/cart/${usuarioId}/${producto_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ cantidad }),
+      });
+      const data = await res.json();
+      setCarrito(data);  // Actualizamos el carrito con la respuesta del servidor
+      alert("✅ ¡Cantidad actualizada!");
+    } catch (error) {
+      alert("❌ Error al actualizar la cantidad.");
+      console.error(error);
+    }
+  };
 
   return (
     <div className={`min-h-screen flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
@@ -31,54 +114,43 @@ const Carrito = () => {
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link key={item} to={`/${item.toLowerCase()}`} className={`text-lg font-semibold ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>{item}</Link>
           ))}
-                {isLoggedIn() && (
-                <>
-                    <Link
-                    to="/perfil"
-                    className={`text-lg font-semibold transition duration-300 ${
-                        theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    >
-                    Perfil
-                    </Link>
-                    <Link
-                    to="/carrito"
-                    className={`text-2xl transition duration-300 ${
-                        theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    title="Ver carrito"
-                    >
-                    🛒
-                    </Link>
-                </>
-                )}
-                {/* Mostrar "Registrarse" solo si no está logueado */}
-          {!isLoggedIn() && (
-            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
-              Registrarse
-            </Link>
+          {isLoggedIn() && (
+            <>
+              <Link to="/perfil" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>Perfil</Link>
+              <Link to="/carrito" className={`text-2xl transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`} title="Ver carrito">🛒</Link>
+            </>
           )}
-
+          {!isLoggedIn() && (
+            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>Registrarse</Link>
+          )}
         </div>
-        <button onClick={toggleTheme} className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}>{theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}</button>
+        <button onClick={toggleTheme} className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}>
+          {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
+        </button>
       </nav>
 
       <main className="mt-28 mb-20 px-6 md:px-20 flex flex-col md:flex-row gap-12">
         <section className="flex-1">
           <h2 className="text-2xl font-bold mb-4 border-b pb-2">Mi carrito</h2>
-          <div className="flex items-center justify-between border-b pb-4">
-            <div className="flex-1 ml-4">
-              <h3 className="font-semibold">Paquete del mes</h3>
-              <p className="text-sm text-gray-500">${precioUnitario.toFixed(2)}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={decrementar} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">-</button>
-              <span>{cantidad}</span>
-              <button onClick={incrementar} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">+</button>
-            </div>
-            <p className="w-24 text-right font-semibold">${total.toFixed(2)}</p>
-            <button className="ml-4 text-xl text-red-500 hover:text-red-700">×</button>
-          </div>
+          {carrito?.productos && carrito.productos.length > 0 ? (
+            carrito.productos.map((producto: any) => (
+              <div key={producto.producto_id} className="flex items-center justify-between border-b pb-4">
+                <div className="flex-1 ml-4">
+                  <h3 className="font-semibold">{producto.tipo_producto}</h3>
+                  <p className="text-sm text-gray-500">${producto.precio_total.toFixed(2)}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleActualizarCantidad(producto.producto_id, producto.cantidad - 1)} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">-</button>
+                  <span>{producto.cantidad}</span>
+                  <button onClick={() => handleActualizarCantidad(producto.producto_id, producto.cantidad + 1)} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">+</button>
+                  <button onClick={() => handleEliminarDelCarrito(producto.producto_id)} className="ml-4 text-xl text-red-500 hover:text-red-700">×</button>
+                </div>
+                <p className="w-24 text-right font-semibold">${(producto.precio_total).toFixed(2)}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-center">Tu carrito está vacío.</p>
+          )}
         </section>
 
         <aside className="w-full md:w-1/3 border rounded-lg p-6 shadow-md">
