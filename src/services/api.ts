@@ -34,7 +34,7 @@ export async function registerUser(nombre: string, email: string, password: stri
   return res.json();
 }
 export async function loginUser(email: string, password: string) {
-  const res = await fetch("http://localhost:2401/api/auth/login", {
+  const res = await fetch("https://wayraback.up.railway.app/api/auth/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

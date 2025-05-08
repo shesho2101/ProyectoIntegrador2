@@ -29,7 +29,7 @@ const Carrito = () => {
           return;
         }
 
-        const res = await fetch(`http://localhost:2401/api/cart/${usuarioId}`, {
+        const res = await fetch(`https://wayraback.up.railway.app/api/cart/${usuarioId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -62,7 +62,7 @@ const Carrito = () => {
     const token = localStorage.getItem("token");
     const usuarioId = localStorage.getItem("userId");
     try {
-      const res = await fetch(`http://localhost:2401/api/cart/${usuarioId}/${producto_id}`, {
+      const res = await fetch(`https://wayraback.up.railway.app/api/cart/${usuarioId}/${producto_id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,7 @@ const Carrito = () => {
     const usuarioId = localStorage.getItem("userId");
 
     try {
-      const res = await fetch(`http://localhost:2401/api/cart/${usuarioId}/${producto_id}`, {
+      const res = await fetch(`https://wayraback.up.railway.app/api/cart/${usuarioId}/${producto_id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

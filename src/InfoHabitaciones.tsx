@@ -96,7 +96,7 @@ export default function InfoHabitaciones() {
       const token = localStorage.getItem("token");
       const usuarioId = Number(localStorage.getItem("userId"));  // Obtener el ID del usuario logueado
   
-      const res = await fetch("http://localhost:2401/api/cart", {
+      const res = await fetch("https://wayraback.up.railway.app/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
