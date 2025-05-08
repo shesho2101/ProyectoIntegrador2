@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaFacebook } from "react-icons/fa";
+import { FaBars, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
@@ -37,6 +37,7 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
     const userMessage: ChatMessage = { from: "user", text: inputValue.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+
     setTimeout(() => {
       const botReply: ChatMessage = {
         from: "bot",
@@ -108,6 +109,7 @@ export default function Registro() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Para el menú hamburguesa
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,7 +132,9 @@ export default function Registro() {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        <div className="flex space-x-6">
+        
+        {/* Menú para pantallas grandes */}
+        <div className="hidden md:flex space-x-6">
           {["Inicio", "Nosotros", "Vuelos", "Hoteles", "Bus", "Contacto"].map((item) => (
             <Link
               key={item}
@@ -141,6 +145,29 @@ export default function Registro() {
             </Link>
           ))}
         </div>
+
+        {/* Menú hamburguesa para pantallas pequeñas */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden text-black focus:outline-none"
+        >
+          <FaBars className="text-2xl" />
+        </button>
+
+        {/* Menú desplegable para pantallas pequeñas */}
+        {isMenuOpen && (
+          <div className="absolute top-16 right-0 bg-white shadow-lg z-50 w-64 rounded-lg p-4">
+            {["Inicio", "Nosotros", "Vuelos", "Hoteles", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className="block text-lg font-semibold text-black hover:text-yellow-600 transition duration-300 py-2"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Contenido */}
@@ -196,8 +223,8 @@ export default function Registro() {
             {mensaje && <p className="text-center text-sm mt-2 text-red-500">{mensaje}</p>}
           </form>
         </div>
-        <ChatBot theme={theme} />
       </div>
+      <ChatBot theme={theme} />
     </div>
   );
 }

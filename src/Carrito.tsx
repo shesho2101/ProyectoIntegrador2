@@ -1,6 +1,5 @@
-// src/Carrito.tsx
 import { useEffect, useState } from "react";
-import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
+import { FaFacebook, FaGithub, FaInstagram, FaBars } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
@@ -11,6 +10,7 @@ const Carrito = () => {
   const [cantidad, setCantidad] = useState(1);
   const precioUnitario = 1000;
   const total = cantidad * precioUnitario;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
@@ -25,44 +25,70 @@ const Carrito = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
+
+      {/* Header */}
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <img src={Logo} alt="Wayra logo" className="h-16" />
-        <div className="flex space-x-6 font-bold">
+
+        {/* Menú Desktop */}
+        <div className="hidden md:flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link key={item} to={`/${item.toLowerCase()}`} className={`text-lg font-semibold ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>{item}</Link>
           ))}
-                {isLoggedIn() && (
-                <>
-                    <Link
-                    to="/perfil"
-                    className={`text-lg font-semibold transition duration-300 ${
-                        theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    >
-                    Perfil
-                    </Link>
-                    <Link
-                    to="/carrito"
-                    className={`text-2xl transition duration-300 ${
-                        theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    title="Ver carrito"
-                    >
-                    🛒
-                    </Link>
-                </>
-                )}
-                {/* Mostrar "Registrarse" solo si no está logueado */}
+
+          {isLoggedIn() && (
+            <>
+              <Link
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+              >
+                Perfil
+              </Link>
+              <Link
+                to="/carrito"
+                className={`text-2xl transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+                title="Ver carrito"
+              >
+                🛒
+              </Link>
+            </>
+          )}
           {!isLoggedIn() && (
             <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
               Registrarse
             </Link>
           )}
-
         </div>
-        <button onClick={toggleTheme} className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}>{theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}</button>
+
+        {/* Menu Hamburguesa */}
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-black focus:outline-none">
+          <FaBars className="text-2xl" />
+        </button>
+
+        {/* Menu Mobile */}
+        {isMenuOpen && (
+          <div className="absolute top-16 right-0 bg-white shadow-lg z-50 w-64 rounded-lg p-4">
+            {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className="block text-lg font-semibold text-black hover:text-yellow-600 transition duration-300 py-2"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={toggleTheme}
+          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}
+        >
+          {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
+        </button>
       </nav>
 
+      {/* Main Content */}
       <main className="mt-28 mb-20 px-6 md:px-20 flex flex-col md:flex-row gap-12">
         <section className="flex-1">
           <h2 className="text-2xl font-bold mb-4 border-b pb-2">Mi carrito</h2>
@@ -96,6 +122,7 @@ const Carrito = () => {
         </aside>
       </main>
 
+      {/* Footer */}
       <footer className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-900"} text-white py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
@@ -116,6 +143,7 @@ const Carrito = () => {
         </div>
         <div className="text-center mt-4 text-sm">© 2025 Wayra - Todos los derechos reservados.</div>
       </footer>
+
     </div>
   );
 };

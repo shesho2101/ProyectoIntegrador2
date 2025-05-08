@@ -5,7 +5,8 @@ import {
   FaFacebook,
   FaGithub,
   FaInstagram,
-  FaReceipt
+  FaReceipt,
+  FaBars
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Habitacion from "./imagenes/habitacion1.png";
@@ -96,52 +97,90 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
 // COMPONENTE PRINCIPAL
 export default function Detalles(): JSX.Element {
   const [theme] = useState<"light" | "dark">("light");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  function setTheme(_arg0: (prev: any) => "light" | "dark") {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-900 font-sans">
       {/* Header */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-80 backdrop-blur-md shadow-md">
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        <div className="flex space-x-6 font-bold">
-        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-  <Link
-    key={item}
-    to={`/${item.toLowerCase()}`}
-    className={`text-lg font-semibold transition duration-300 ${
-      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-    }`}
-  >
-    {item}
-  </Link>
-))}
-      {isLoggedIn() && (
-        <>
-          <Link
-            to="/perfil"
-            className={`text-lg font-semibold transition duration-300 ${
-              theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-            }`}
-          >
-            Perfil
-          </Link>
-          <Link
-            to="/carrito"
-            className={`text-2xl transition duration-300 ${
-              theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-            }`}
-            title="Ver carrito"
-          >
-            🛒
-          </Link>
-        </>
-      )}
-      {/* Mostrar "Registrarse" solo si no está logueado */}
-      {!isLoggedIn() && (
+        
+        {/* Menú Desktop */}
+        <div className="hidden md:flex space-x-6 font-bold">
+          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+            <Link
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              className={`text-lg font-semibold transition duration-300 ${
+                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+              }`}
+            >
+              {item}
+            </Link>
+          ))}
+          {isLoggedIn() && (
+            <>
+              <Link
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                Perfil
+              </Link>
+              <Link
+                to="/carrito"
+                className={`text-2xl transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+                title="Ver carrito"
+              >
+                🛒
+              </Link>
+            </>
+          )}
+          {!isLoggedIn() && (
             <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
               Registrarse
             </Link>
           )}
         </div>
+
+        {/* Menú hamburguesa para pantallas pequeñas */}
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-black focus:outline-none">
+          <FaBars className="text-2xl" />
+        </button>
+
+        {/* Menu móvil */}
+        {isMenuOpen && (
+          <div className="absolute top-16 right-0 bg-white shadow-lg z-50 w-64 rounded-lg p-4">
+            {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className="block text-lg font-semibold text-black hover:text-yellow-600 transition duration-300 py-2"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => {
+            // Cambiar tema claro/oscuro
+            setTheme(prev => (prev === "light" ? "dark" : "light"));
+          }}
+          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${
+            theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"
+          }`}
+        >
+          {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
+        </button>
       </nav>
 
       {/* Main */}

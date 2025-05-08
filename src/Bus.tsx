@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
+import { FaFacebook, FaGithub, FaInstagram, FaBars } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
 
 // ChatMessage type y componente ChatBot
-
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -98,6 +97,7 @@ const Bus: React.FC = () => {
   const [selectedHours, setSelectedHours] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([85000, 100000]);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -115,7 +115,7 @@ const Bus: React.FC = () => {
     );
   };
 
-  const getSalidaHour = (hora: string) => parseInt(hora.split(":" )[0]);
+  const getSalidaHour = (hora: string) => parseInt(hora.split(":")[0]);
 
   const filteredBuses = initialBuses.filter((bus) => {
     const salida = getSalidaHour(bus.salida);
@@ -140,49 +140,61 @@ const Bus: React.FC = () => {
       {/* Header */}
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        <div className="flex space-x-6 font-bold">
-        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+
+        <div className="hidden md:flex space-x-6 font-bold">
+          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+            <Link
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+            >
+              {item}
+            </Link>
+          ))}
+          {isLoggedIn() && (
+            <>
               <Link
-                key={item}
-                to={`/${item.toLowerCase()}`}
-                className={`text-lg font-semibold transition duration-300 ${
-                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                }`}
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
               >
-                {item}
+                Perfil
               </Link>
-            ))}
-
-              {isLoggedIn() && (
-                <>
-                  <Link
-                    to="/perfil"
-                    className={`text-lg font-semibold transition duration-300 ${
-                      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                  >
-                    Perfil
-                  </Link>
-                  <Link
-                    to="/carrito"
-                    className={`text-2xl transition duration-300 ${
-                      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                    }`}
-                    title="Ver carrito"
-                  >
-                    🛒
-                  </Link>
-                </>
-              )}
-
-          {/* Mostrar "Registrarse" solo si no está logueado */}
+              <Link
+                to="/carrito"
+                className={`text-2xl transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+                title="Ver carrito"
+              >
+                🛒
+              </Link>
+            </>
+          )}
           {!isLoggedIn() && (
             <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
               Registrarse
             </Link>
           )}
-
         </div>
+
+        {/* Menu Hamburguesa */}
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-black focus:outline-none">
+          <FaBars className="text-2xl" />
+        </button>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="absolute top-16 right-0 bg-white shadow-lg z-50 w-64 rounded-lg p-4">
+            {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className="block text-lg font-semibold text-black hover:text-yellow-600 transition duration-300 py-2"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        )}
+
         <button
           onClick={toggleTheme}
           className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm transition-colors duration-300 border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}
@@ -205,7 +217,6 @@ const Bus: React.FC = () => {
 
       {/* Contenido */}
       <div className="container mx-auto flex flex-col md:flex-row mt-10 px-4 gap-6">
-        {/* Filtros */}
         <div className="md:w-1/4">
           <div className={`rounded-lg shadow-md p-5 ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
             <h3 className="text-lg font-semibold mb-4">Horario de Salida</h3>

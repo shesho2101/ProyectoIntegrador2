@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { FaFacebook, FaFire, FaGithub, FaHandsHelping, FaInstagram, FaUserCheck } from "react-icons/fa";
+import { FaFacebook, FaFire, FaGithub, FaHandsHelping, FaInstagram, FaUserCheck, FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import HeroImage from "./imagenes/FondoInicio.jpg";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import Persona from "./imagenes/persona.jpg";
 import { isLoggedIn } from "./services/auth";
-
 
 // ChatBot
 type ChatMessage = { from: "user" | "bot"; text: string };
@@ -88,9 +87,9 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   );
 };
 
-
 export default function Nosotros() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Estado para el menú hamburguesa
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
@@ -103,20 +102,22 @@ export default function Nosotros() {
 
   return (
     <div className={`flex flex-col min-h-screen w-full transition-colors duration-300 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      {/* Navbar */}
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        <div className="flex space-x-6 font-bold">
-        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-        <Link
-          key={item}
-          to={`/${item.toLowerCase()}`}
-          className={`text-lg font-semibold transition duration-300 ${
-            theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-          }`}
-        >
-          {item}
-        </Link>
-      ))}
+        {/* Menú en pantallas grandes */}
+        <div className="hidden md:flex space-x-6 font-bold">
+          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+            <Link
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              className={`text-lg font-semibold transition duration-300 ${
+                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+              }`}
+            >
+              {item}
+            </Link>
+          ))}
           {isLoggedIn() && (
             <>
               <Link
@@ -138,15 +139,35 @@ export default function Nosotros() {
               </Link>
             </>
           )}
-
           {/* Mostrar "Registrarse" solo si no está logueado */}
           {!isLoggedIn() && (
-            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
+            <Link
+              to="/registro"
+              className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+            >
               Registrarse
             </Link>
           )}
-
         </div>
+        {/* Menú hamburguesa para pantallas pequeñas */}
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-black focus:outline-none">
+          <FaBars className="text-2xl" />
+        </button>
+        {/* Menú desplegable para pantallas pequeñas */}
+        {isMenuOpen && (
+          <div className="absolute top-16 right-0 bg-white shadow-lg z-50 w-64 rounded-lg p-4">
+            {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className="block text-lg font-semibold text-black hover:text-yellow-600 transition duration-300 py-2"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        )}
+        {/* Botón de cambio de tema */}
         <button
           onClick={toggleTheme}
           className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}
@@ -155,17 +176,19 @@ export default function Nosotros() {
         </button>
       </nav>
 
+      {/* Hero Image */}
       <section className="relative w-full h-[350px] flex items-center justify-center mt-20">
         <img src={HeroImage} alt="Colombian street" className="w-full h-full object-cover brightness-50" />
         <h1 className="absolute text-6xl font-extrabold text-white drop-shadow-lg">Nosotros</h1>
       </section>
 
+      {/* Sobre Nosotros */}
       <section className="py-16 px-6 md:px-16 flex justify-center">
         <div className={`shadow-xl rounded-lg overflow-hidden flex flex-col md:flex-row max-w-6xl w-full ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
           <div className="w-full md:w-1/2">
-            <img 
-              src={Persona} 
-              alt="Mujer sonriendo en un mercado colombiano" 
+            <img
+              src={Persona}
+              alt="Mujer sonriendo en un mercado colombiano"
               className="w-full h-[500px] object-cover object-center md:object-left rounded-lg"
             />
           </div>
@@ -184,6 +207,7 @@ export default function Nosotros() {
         </div>
       </section>
 
+      {/* Nuestros Valores */}
       <section className="py-16 px-6 md:px-16 text-center">
         <h2 className="text-4xl font-extrabold mb-6">Nuestros Valores</h2>
         <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-500"} mb-12`}>
@@ -208,6 +232,7 @@ export default function Nosotros() {
         </div>
       </section>
 
+      {/* Footer */}
       <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
