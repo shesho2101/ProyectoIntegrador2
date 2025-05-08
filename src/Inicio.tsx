@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { FaChevronLeft, FaChevronRight, FaBars } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import Logo from "./imagenes/Logo(sin fondo).png";
 import Cartagena from "../public/imagenes/cartagena.jpg";
 import Mar from "../public/imagenes/mar.jpg";
 import Paisaje from "../public/imagenes/paisaje.jpg";
-import Logo from "./imagenes/Logo(sin fondo).png";
-import { isLoggedIn } from "./services/auth"; // Asegúrate de que esta función esté importada correctamente
 
 const images = [
   { src: Cartagena, alt: "Vista de Cartagena, Colombia" },
@@ -51,9 +50,9 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
       </div>
 
       <div
-        className={`fixed bottom-0 right-0 w-full md:w-96 overflow-hidden rounded-t-3xl shadow-xl transition-all duration-300 z-50 ${
+        className={fixed bottom-0 right-0 w-full md:w-96 overflow-hidden rounded-t-3xl shadow-xl transition-all duration-300 z-50 ${
           theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
-        } ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
+        } ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}}
       >
         <div className="flex justify-end p-4">
           <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
@@ -62,13 +61,13 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`p-3 rounded-lg max-w-xs ${
+              className={p-3 rounded-lg max-w-xs ${
                 msg.from === "user"
                   ? "bg-yellow-400 self-end text-gray-900"
                   : theme === "dark"
                   ? "bg-gray-700 text-white"
                   : "bg-gray-200 text-black"
-              }`}
+              }}
             >
               <p>{msg.text}</p>
             </div>
@@ -81,11 +80,11 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Escribe tu mensaje..."
-              className={`w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
+              className={w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
                 theme === "dark"
                   ? "bg-gray-700 text-white border-gray-500"
                   : "bg-white text-black border-gray-300"
-              }`}
+              }}
             />
           </form>
         </div>
@@ -97,7 +96,6 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
 export default function Inicio() {
   const [currentImage, setCurrentImage] = useState(0);
   const theme: "light" | "dark" = "light";
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const changeImage = (next = true) => {
     setCurrentImage((prev) =>
@@ -118,48 +116,24 @@ export default function Inicio() {
       </div>
 
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
-        <Link to="/">
-          <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        </Link>
-        <div className="flex space-x-6 font-bold hidden md:flex">
-          {["Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-80 backdrop-blur-md shadow-md">
+        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        <div className="flex space-x-6 font-bold">
+          {["Registro", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link
               key={item}
-              to={`/${item.toLowerCase()}`}
+              to={/${item.toLowerCase()}}
               className="text-lg font-semibold text-black hover:text-yellow-600 transition duration-300"
             >
               {item}
             </Link>
           ))}
         </div>
-
-        {/* Menu Hamburger */}
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden text-black focus:outline-none"
-        >
-          <FaBars className="text-2xl" />
-        </button>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="absolute top-16 right-0 bg-white shadow-lg z-50 w-64 rounded-lg p-4">
-            {["Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-              <Link
-                key={item}
-                to={`/${item.toLowerCase()}`}
-                className="block text-lg font-semibold text-black hover:text-yellow-600 transition duration-300 py-2"
-              >
-                {item}
-              </Link>
-            ))}
-          </div>
-        )}
       </nav>
 
       {/* Contenido principal */}
       <div className="relative z-10 flex flex-col md:flex-row h-full pt-24 px-8">
+        {/* Introducción */}
         <div className="w-full md:w-1/2 flex flex-col justify-center animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-md">
             Explora <span className="text-yellow-400">Colombia</span> con Wayra
@@ -171,7 +145,7 @@ export default function Inicio() {
             to="/nosotros"
             className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg font-medium text-lg transition-transform transform hover:scale-105 shadow-lg"
           >
-            Conoce más
+            Conoce más 
           </Link>
         </div>
 
@@ -188,8 +162,8 @@ export default function Inicio() {
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{
-                transform: `translateX(-${currentImage * 750}px)`,
-                width: `${images.length * 750}px`,
+                transform: translateX(-${currentImage * 750}px),
+                width: ${images.length * 750}px,
               }}
             >
               {images.map((img, index) => (
