@@ -119,7 +119,7 @@ export default function Perfil() {
           <img src={Logo} alt="Logo de Wayra" className="h-16" />
         </Link>
         <div className="flex space-x-6 font-bold">
-          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
+          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link
               key={item}
               to={`/${item.toLowerCase()}`}

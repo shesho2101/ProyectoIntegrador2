@@ -13,7 +13,6 @@ const Alojamientos: React.FC = () => {
   const [filtroDestino, setFiltroDestino] = useState("");
   const [fechaLlegada, setFechaLlegada] = useState("");
   const [fechaSalida, setFechaSalida] = useState("");
-  const [personas, setPersonas] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -126,16 +125,6 @@ const Alojamientos: React.FC = () => {
               type="date"
               value={fechaSalida}
               onChange={(e) => setFechaSalida(e.target.value)}
-              className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-          </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium mb-1">¿Quiénes?</label>
-            <input
-              type="number"
-              min="1"
-              value={personas}
-              onChange={(e) => setPersonas(parseInt(e.target.value))}
               className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
