@@ -148,6 +148,16 @@ export default function Registro() {
       {/* Contenido */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 pt-20">
         <div className="bg-white bg-opacity-90 rounded-3xl p-10 w-full max-w-md shadow-lg">
+
+        <div className="text-left mb-4">
+            <Link
+              to="/"
+              className="text-yellow-600 hover:underline text-lg"
+            >
+              ← Volver
+            </Link>
+          </div>
+          
           {/* Encabezado */}
           <p className="text-sm text-gray-500 mb-2">
             <Link to="/login" className="text-yellow-600 hover:underline">Inicia sesión</Link> &gt; Crear una cuenta

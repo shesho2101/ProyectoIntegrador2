@@ -11,6 +11,11 @@ const Carrito = () => {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
+
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
     if (!isLoggedIn()) navigate("/login");
@@ -55,8 +60,11 @@ const Carrito = () => {
     fetchCarrito();
   }, [theme, navigate]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
-
+const toggleTheme = () => {
+  const newTheme = theme === "light" ? "dark" : "light";
+  setTheme(newTheme);
+  localStorage.setItem("theme", newTheme);  // Guardar el tema en localStorage
+};
   // Eliminar un producto del carrito
   const handleEliminarDelCarrito = async (producto_id: string) => {
     const token = localStorage.getItem("token");
