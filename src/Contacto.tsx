@@ -15,12 +15,24 @@ export default function Contacto() {
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
+    // Recuperar el tema del localStorage y aplicarlo al cargar la página
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
+  
 
   const toggleChat = () => setIsChatOpen(!isChatOpen);
-  const toggleTheme = () => setTheme(prev => (prev === "light" ? "dark" : "light"));
+  
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);  // Guardar el tema en localStorage
+  };
+  
 
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

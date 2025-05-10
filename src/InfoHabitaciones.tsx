@@ -1,3 +1,4 @@
+import { differenceInDays } from "date-fns";
 import { useEffect, useState } from "react";
 import {
   FaDollarSign, FaFacebook, FaGithub, FaInstagram,
@@ -7,7 +8,6 @@ import { Link, useParams } from "react-router-dom";
 import { getHotelById } from "../src/services/api";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
-import { differenceInDays } from "date-fns";
 
 // ChatBot
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
@@ -67,9 +67,14 @@ export default function InfoHabitaciones() {
   const [precioTotal, setPrecioTotal] = useState(0);
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
+  
 
   useEffect(() => {
     if (id) {
@@ -84,8 +89,12 @@ export default function InfoHabitaciones() {
     }
   }, [fechaInicio, fechaFin, hotel]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
-
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);  
+  };
+  
   const handleAddToCart = async () => {
     if (!isLoggedIn()) {
       alert("Debes iniciar sesión para añadir al carrito.");

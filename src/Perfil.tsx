@@ -97,10 +97,14 @@ export default function Perfil() {
   };
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
-
+  
   useEffect(() => {
     const usuario = localStorage.getItem("usuario");
     if (!usuario) {
@@ -110,8 +114,12 @@ export default function Perfil() {
     }
   }, [navigate]);
 
-  const toggleTheme = () => setTheme(prev => (prev === "light" ? "dark" : "light"));
-
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);  
+  };
+  
   return (
     <>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
