@@ -16,10 +16,14 @@ const Alojamientos: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
-
+  
   useEffect(() => {
     fetch("https://wayraback.up.railway.app/api/hotels/ciudades/unicas")
       .then((res) => res.json())
@@ -31,8 +35,12 @@ const Alojamientos: React.FC = () => {
       .catch(() => setError("No se pudieron cargar los alojamientos"));
   }, []);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
-
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme); 
+  };
+  
   const hotelesFiltrados = hotels.filter((hotel) =>
     hotel.ciudad.toLowerCase().includes(filtroDestino.toLowerCase())
   );

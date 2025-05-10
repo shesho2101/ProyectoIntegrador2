@@ -53,20 +53,29 @@ export default function Login() {
         />
       </div>
       
+      
       <div className="absolute top-16 left-0 right-0 flex justify-center z-10">
         <img 
           src={Logo} 
           alt="Wayra logo" 
-          className="h-25" 
+          className="h-10" 
         />
       </div>
       
       <div className="absolute inset-0 flex items-center justify-center z-10">
         <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-3xl p-12 w-full max-w-lg shadow-lg">
+        <div className="text-left mb-4">
+            <button
+              onClick={() => navigate("/registro")} 
+              className="text-yellow-600 hover:text-yellow-400 text-lg font-medium"
+            >
+              ← Volver
+            </button>
+          </div>
           <h1 className="text-center text-black text-xl font-medium mb-8">
             ¡Conéctate con Colombia y comienza tu próxima aventura!
           </h1>
-
+          
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="relative">
               <input 
