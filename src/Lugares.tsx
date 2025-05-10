@@ -13,14 +13,17 @@ const Alojamientos: React.FC = () => {
   const [filtroDestino, setFiltroDestino] = useState("");
   const [fechaLlegada, setFechaLlegada] = useState("");
   const [fechaSalida, setFechaSalida] = useState("");
-  const [personas, setPersonas] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
-
+  
   useEffect(() => {
     fetch("https://wayraback.up.railway.app/api/hotels/ciudades/unicas")
       .then((res) => res.json())
@@ -32,8 +35,12 @@ const Alojamientos: React.FC = () => {
       .catch(() => setError("No se pudieron cargar los alojamientos"));
   }, []);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
-
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme); 
+  };
+  
   const hotelesFiltrados = hotels.filter((hotel) =>
     hotel.ciudad.toLowerCase().includes(filtroDestino.toLowerCase())
   );
@@ -126,16 +133,6 @@ const Alojamientos: React.FC = () => {
               type="date"
               value={fechaSalida}
               onChange={(e) => setFechaSalida(e.target.value)}
-              className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-          </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium mb-1">¿Quiénes?</label>
-            <input
-              type="number"
-              min="1"
-              value={personas}
-              onChange={(e) => setPersonas(parseInt(e.target.value))}
               className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
