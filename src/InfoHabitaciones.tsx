@@ -226,7 +226,7 @@ export default function InfoHabitaciones() {
                 infinite={true}
                 swipe={false}
                 draggable={false}
-                beforeChange={(_oldIndex, newIndex) => setCurrentSlide(newIndex)}
+                beforeChange={(_: number, newIndex: number) => setCurrentSlide(newIndex)}
                 prevArrow={<CustomPrevArrow />}
                 nextArrow={<CustomNextArrow />}
               >
