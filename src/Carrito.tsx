@@ -3,15 +3,22 @@ import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const Carrito = () => {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [carrito, setCarrito] = useState<any>(null); // Aquí almacenaremos el carrito
+  const [carrito, setCarrito] = useState<any>(null);
   const [total, setTotal] = useState(0);
+  const [nombresProductos, setNombresProductos] = useState<Record<string, string>>({});
+
+  const calcularTotal = (carrito: any) => {
+    if (!carrito?.productos) return 0;
+    return carrito.productos.reduce((acc: number, p: any) => acc + p.precio_total, 0);
+  };
 
   useEffect(() => {
-
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     if (savedTheme) {
       setTheme(savedTheme);
@@ -20,16 +27,13 @@ const Carrito = () => {
     document.documentElement.classList.add(theme);
     if (!isLoggedIn()) navigate("/login");
 
-    // Obtener el carrito del usuario
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");    
+
     const fetchCarrito = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const usuarioId = localStorage.getItem("userId");  // Obtener el userId desde localStorage
-
-        console.log("userId desde localStorage:", usuarioId);  // Verificación
-
         if (!usuarioId) {
-          alert("No se ha encontrado el ID de usuario. Por favor, inicie sesión.");
+          toast.error("⚠️ Usuario no identificado.");
           navigate("/login");
           return;
         }
@@ -42,54 +46,92 @@ const Carrito = () => {
           },
         });
 
-        if (res.status === 403) {
-          alert("Acceso denegado. No puedes ver el carrito.");
+        if (res.status === 401 || res.status === 403) {
+          toast.error("⚠️ No tienes permiso para ver el carrito.");
+          navigate("/login");
           return;
         }
 
         const data = await res.json();
-        setCarrito(data);
+        if (!data.productos || data.productos.length === 0) {
+          setCarrito({ productos: [] });
+          setTotal(calcularTotal(data));
+          return;
+        }
 
-        // Calcular el total del carrito
-        let totalCarrito = data.productos.reduce((acc: number, product: any) => acc + product.precio_total, 0);
-        setTotal(totalCarrito);
+        setCarrito(data);
+        setTotal(calcularTotal(data));
+
+        // Obtener los nombres de los productos desde sus IDs
+        const obtenerNombres = async () => {
+          const nombresTemp: Record<string, string> = {};
+
+          for (const item of data.productos) {
+            if (item.tipo_producto === "hotel") {
+              try {
+                const res = await fetch(`https://wayraback.up.railway.app/api/hotels/${item.producto_id}`);
+                const hotel = await res.json();
+                nombresTemp[item.producto_id] = hotel.nombre;
+              } catch (e) {
+                console.error("Error al obtener hotel:", e);
+                nombresTemp[item.producto_id] = "Hotel";
+              }
+            } else {
+              nombresTemp[item.producto_id] = item.tipo_producto;
+            }
+          }
+
+          setNombresProductos(nombresTemp);
+        };
+
+        obtenerNombres();
+
       } catch (error) {
-        console.error("Error al obtener el carrito:", error);
+        toast.error("❌ Error al cargar el carrito.");
+        console.error(error);
       }
     };
+
     fetchCarrito();
   }, [theme, navigate]);
 
-const toggleTheme = () => {
-  const newTheme = theme === "light" ? "dark" : "light";
-  setTheme(newTheme);
-  localStorage.setItem("theme", newTheme);  // Guardar el tema en localStorage
-};
-  // Eliminar un producto del carrito
-  const handleEliminarDelCarrito = async (producto_id: string) => {
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
+
+  const handleEliminarDelCarrito = async (producto_id: string, tipo_producto: string) => {
     const token = localStorage.getItem("token");
     const usuarioId = localStorage.getItem("userId");
+
     try {
-      const res = await fetch(`https://wayraback.up.railway.app/api/cart/${usuarioId}/${producto_id}`, {
+      const res = await fetch(`https://wayraback.up.railway.app/api/cart/${usuarioId}/${producto_id}/${tipo_producto}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) {
+        throw new Error("Error al eliminar");
+      }
+
       const data = await res.json();
-      setCarrito(data);  // Actualizamos el carrito con la respuesta del servidor
-      alert("✅ ¡Producto eliminado del carrito!");
+      setCarrito(data);
+      setTotal(calcularTotal(data));
+      toast.success("✅ Producto eliminado del carrito");
     } catch (error) {
-      alert("❌ Error al eliminar el producto.");
+      toast.error("❌ Error al eliminar el producto.");
       console.error(error);
     }
   };
 
-  // Actualizar la cantidad de un producto en el carrito
+
   const handleActualizarCantidad = async (producto_id: string, cantidad: number) => {
     if (cantidad <= 0) {
-      alert("La cantidad debe ser mayor que 0.");
+      toast.warning("⚠️ La cantidad debe ser mayor que 0.");
       return;
     }
 
@@ -106,10 +148,11 @@ const toggleTheme = () => {
         body: JSON.stringify({ cantidad }),
       });
       const data = await res.json();
-      setCarrito(data);  // Actualizamos el carrito con la respuesta del servidor
-      alert("✅ ¡Cantidad actualizada!");
+      setCarrito(data);
+      setTotal(calcularTotal(data));
+      toast.success("✅ Cantidad actualizada");
     } catch (error) {
-      alert("❌ Error al actualizar la cantidad.");
+      toast.error("❌ Error al actualizar la cantidad.");
       console.error(error);
     }
   };
@@ -144,16 +187,18 @@ const toggleTheme = () => {
             carrito.productos.map((producto: any) => (
               <div key={producto.producto_id} className="flex items-center justify-between border-b pb-4">
                 <div className="flex-1 ml-4">
-                  <h3 className="font-semibold">{producto.tipo_producto}</h3>
-                  <p className="text-sm text-gray-500">${producto.precio_total.toFixed(2)}</p>
+                  <h3 className="font-semibold">
+                    {nombresProductos[producto.producto_id] || producto.tipo_producto}
+                  </h3>
+                  <p className="text-sm text-gray-500">${producto.precio_total.toLocaleString('es-CO')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => handleActualizarCantidad(producto.producto_id, producto.cantidad - 1)} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">-</button>
                   <span>{producto.cantidad}</span>
                   <button onClick={() => handleActualizarCantidad(producto.producto_id, producto.cantidad + 1)} className="px-2 text-lg font-bold bg-gray-300 hover:bg-gray-400 rounded">+</button>
-                  <button onClick={() => handleEliminarDelCarrito(producto.producto_id)} className="ml-4 text-xl text-red-500 hover:text-red-700">×</button>
+                  <button onClick={() => handleEliminarDelCarrito(producto.producto_id, producto.tipo_producto)} className="ml-4 text-xl text-red-500 hover:text-red-700">×</button>
                 </div>
-                <p className="w-24 text-right font-semibold">${(producto.precio_total).toFixed(2)}</p>
+                <p className="w-24 text-right font-semibold">${producto.precio_total.toLocaleString('es-CO')}</p>
               </div>
             ))
           ) : (
@@ -165,11 +210,11 @@ const toggleTheme = () => {
           <h2 className="text-xl font-bold mb-4 border-b pb-2">Resumen del pedido</h2>
           <div className="flex justify-between mb-2">
             <p>Subtotal</p>
-            <p>${total.toFixed(2)}</p>
+            <p>${total.toLocaleString('es-CO')}</p>
           </div>
           <div className="flex justify-between font-bold text-lg mb-4">
             <p>Total</p>
-            <p>${total.toFixed(2)}</p>
+            <p>${total.toLocaleString('es-CO')}</p>
           </div>
           <button className="w-full bg-black text-white py-3 rounded-md font-bold hover:bg-gray-800">Finalizar compra</button>
           <p className="text-xs text-center mt-2">🔒 Pago seguro</p>
@@ -196,6 +241,8 @@ const toggleTheme = () => {
         </div>
         <div className="text-center mt-4 text-sm">© 2025 Wayra - Todos los derechos reservados.</div>
       </footer>
+
+      <ToastContainer />
     </div>
   );
 };

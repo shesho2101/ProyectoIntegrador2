@@ -1,10 +1,8 @@
-// InfoHabitaciones.tsx completo con navegación, barra de info, separador de miles y opiniones
-
 import { differenceInDays } from "date-fns";
 import { useEffect, useState, useRef } from "react";
 import {
   FaDollarSign, FaFacebook, FaGithub, FaInstagram,
-  FaMapMarkerAlt, FaStar, FaChevronLeft, FaChevronRight
+  FaMapMarkerAlt, FaStar, FaChevronLeft, FaChevronRight, FaHeart
 } from "react-icons/fa";
 import { Link, useParams } from "react-router-dom";
 import { getHotelById } from "../src/services/api";
@@ -13,6 +11,8 @@ import { isLoggedIn } from "./services/auth";
 import LogoColor from "./imagenes/Logo(sin fondo).png";
 import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
 import Slider from "react-slick";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -71,13 +71,174 @@ export default function InfoHabitaciones() {
   const sliderRef = useRef<any>(null);
   const [comentario, setComentario] = useState("");
   const [calificacion, setCalificacion] = useState(5);
+  const [esFavorito, setEsFavorito] = useState(false);
+  const [favoritoId, setFavoritoId] = useState<number | null>(null);
+  const [opiniones, setOpiniones] = useState<any[]>([]);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) setTheme(savedTheme);
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (id) getHotelById(id).then(setHotel).catch(console.error);
+  }, [id]);
+
+  useEffect(() => {
+    if (fechaInicio && fechaFin && hotel?.precio) {
+      const dias = differenceInDays(new Date(fechaFin), new Date(fechaInicio));
+      setPrecioTotal(dias > 0 ? dias * hotel.precio : 0);
+    }
+  }, [fechaInicio, fechaFin, hotel]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");
+    if (token && usuarioId && id) {
+      fetch(`https://wayraback.up.railway.app/api/favorites/user/${usuarioId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const favorito = data.find(
+            (f: any) => f.tipo_favorito === "hotel" && f.referencia_mongo_id === id
+          );
+          if (favorito) {
+            setEsFavorito(true);
+            setFavoritoId(favorito.id);
+          }
+        });
+    }
+  }, [id]);
+
+  useEffect(() => {
+    const cargarOpiniones = async () => {
+      try {
+        const res = await fetch("https://wayraback.up.railway.app/api/opinions");
+        const todas = await res.json();
+        const filtradas = todas.filter(
+          (op: any) => op.tipo_opinion === "hotel" && op.referencia_mongo_id === id
+        );
+        setOpiniones(filtradas);
+      } catch (error) {
+        console.error("Error al cargar opiniones:", error);
+      }
+    };
+
+    if (id) cargarOpiniones();
+  }, [id]);
+
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
+
+  const CustomPrevArrow = ({ onClick }: any) => (
+    <button onClick={onClick} className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full z-10 hover:bg-opacity-80">
+      <FaChevronLeft />
+    </button>
+  );
+
+  const CustomNextArrow = ({ onClick }: any) => (
+    <button onClick={onClick} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full z-10 hover:bg-opacity-80">
+      <FaChevronRight />
+    </button>
+  );
+
+  const handleThumbnailClick = (index: number) => {
+    sliderRef.current?.slickGoTo(index);
+    setCurrentSlide(index);
+  };
+
+  const toggleFavorito = async () => {
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");
+    if (!isLoggedIn() || !token || !usuarioId || !id) {
+      toast.warning("⚠️ Debes iniciar sesión para gestionar favoritos.");
+      return;
+    }
+
+    try {
+      if (esFavorito && favoritoId) {
+        await fetch(`https://wayraback.up.railway.app/api/favorites/${favoritoId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.info("❌ Eliminado de favoritos");
+        setEsFavorito(false);
+        setFavoritoId(null);
+      } else {
+        const res = await fetch(`https://wayraback.up.railway.app/api/favorites`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            usuario_id: Number(usuarioId),
+            tipo_favorito: "hotel",
+            referencia_mongo_id: id,
+          }),
+        });
+        const nuevo = await res.json();
+        toast.success("❤️ Añadido a favoritos");
+        setEsFavorito(true);
+        setFavoritoId(nuevo.id);
+      }
+    } catch (error) {
+      toast.error("❌ Error al gestionar el favorito");
+      console.error(error);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!isLoggedIn()) {
+      toast.warn("⚠️ Debes iniciar sesión para añadir al carrito.");
+      return; 
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const usuarioId = Number(localStorage.getItem("userId"));
+
+      const res = await fetch("https://wayraback.up.railway.app/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          usuario_id: usuarioId,
+          producto_id: id,
+          tipo_producto: "hotel",
+          cantidad: 1,
+          precio_total: precioTotal,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(`❌ Error: ${data.message || "No se pudo agregar al carrito."}`);
+        return;
+      }
+
+      toast.success("✅ ¡Producto añadido al carrito con éxito!");
+    } catch (error) {
+      console.error(error);
+      toast.error("❌ Ocurrió un error al añadir al carrito.");
+    }
+  };
 
   const handleSubmitOpinion = async () => {
     const token = localStorage.getItem("token");
     const usuarioId = Number(localStorage.getItem("userId"));
 
     if (!comentario || !calificacion || !id) {
-      alert("Por favor completa todos los campos.");
+      toast.warn("Por favor completa todos los campos.");
       return;
     }
 
@@ -98,87 +259,28 @@ export default function InfoHabitaciones() {
       });
 
       const data = await res.json();
-      if (!res.ok) return alert(`❌ Error: ${data.message}`);
-      alert("✅ Opinión enviada con éxito");
+      if (!res.ok) return toast.error(`❌ Error: ${data.message}`);
+      toast.success("✅ Opinión enviada con éxito");
       setComentario("");
       setCalificacion(5);
       getHotelById(id).then(setHotel);
+      const nuevaOpinion = {
+        usuario_id: usuarioId,
+        tipo_opinion: "hotel",
+        referencia_mongo_id: id,
+        calificacion,
+        comentario,
+        fecha_publicacion: new Date().toISOString(), // Generar fecha actual
+      };
+
+      setHotel((prev: { opiniones: any; }) => ({
+        ...prev,
+        opiniones: [nuevaOpinion, ...(prev?.opiniones || [])],
+      }));
 
     } catch (error) {
       console.error(error);
-      alert("❌ Ocurrió un error al enviar la opinión");
-    }
-  };
-
-  const CustomPrevArrow = ({ onClick }: any) => (
-    <button onClick={onClick} className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full z-10 hover:bg-opacity-80">
-      <FaChevronLeft />
-    </button>
-  );
-
-  const CustomNextArrow = ({ onClick }: any) => (
-    <button onClick={onClick} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full z-10 hover:bg-opacity-80">
-      <FaChevronRight />
-    </button>
-  );
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme) setTheme(savedTheme);
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
-  }, [theme]);
-
-  useEffect(() => {
-    if (id) getHotelById(id).then(setHotel).catch(console.error);
-  }, [id]);
-
-  useEffect(() => {
-    if (fechaInicio && fechaFin && hotel?.precio) {
-      const dias = differenceInDays(new Date(fechaFin), new Date(fechaInicio));
-      setPrecioTotal(dias > 0 ? dias * hotel.precio : 0);
-    }
-  }, [fechaInicio, fechaFin, hotel]);
-
-  const handleThumbnailClick = (index: number) => {
-    sliderRef.current?.slickGoTo(index);
-    setCurrentSlide(index);
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
-  const handleAddToCart = async () => {
-    if (!isLoggedIn()) {
-      alert("Debes iniciar sesión para añadir al carrito.");
-      return;
-    }
-    try {
-      const token = localStorage.getItem("token");
-      const usuarioId = Number(localStorage.getItem("userId"));
-      const res = await fetch("https://wayraback.up.railway.app/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          usuario_id: usuarioId,
-          producto_id: id,
-          tipo_producto: "hotel",
-          cantidad: 1,
-          precio_total: precioTotal,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return alert(`❌ Error: ${data.message}`);
-      alert("✅ ¡Producto añadido al carrito con éxito!");
-    } catch (error) {
-      alert("Ocurrió un error al añadir al carrito.");
-      console.error(error);
+      toast.error("❌ Ocurrió un error al enviar la opinión");
     }
   };
 
@@ -212,7 +314,15 @@ export default function InfoHabitaciones() {
 
       <div className="h-24" />
       <main className="px-4 md:px-16 py-8">
-        <h1 className="text-4xl font-extrabold mb-2">{hotel.nombre}</h1>
+        <div className="relative">
+          <button 
+            onClick={toggleFavorito} 
+            className="absolute top-0 right-0 p-3 text-2xl z-10"
+          >
+            <FaHeart className={esFavorito ? "text-red-500" : "text-gray-400"} />
+          </button>
+          <h1 className="text-4xl font-extrabold mb-2">{hotel.nombre}</h1>
+        </div>
         <p className={`text-md mb-6 ${theme === "dark" ? "text-white" : "text-gray-500"}`}>{hotel.descripcion}</p>
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-2/3">
@@ -288,26 +398,48 @@ export default function InfoHabitaciones() {
           </div>
         </div>
 
-        {/* Opiniones debajo de info rápida */}
-        {hotel.opiniones?.length > 0 && (
+        {opiniones.length > 0 && (
           <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md mb-8">
-            <h3 className="text-xl font-bold mb-4">🗨 Opiniones del alojamiento</h3>
-            <div className="space-y-4">
-              {hotel.opiniones.map((op: any, i: number) => (
-                <div key={i} className="border-b border-gray-300 dark:border-gray-600 pb-2">
-                  <p className="text-sm italic mb-1">"{op.comentario}"</p>
-                  <p className="text-xs text-gray-500">⭐ {op.calificacion} / Publicado: {new Date(op.fecha_publicacion).toLocaleDateString("es-CO")}</p>
-                </div>
-              ))}
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+              🗨 Opiniones del alojamiento
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {opiniones.map((op: any, i: number) => {
+                const fecha =
+                  op.fecha_publicacion && !isNaN(Date.parse(op.fecha_publicacion))
+                    ? new Date(op.fecha_publicacion).toLocaleString("es-CO", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Fecha no disponible";
+
+                return (
+                  <div
+                    key={i}
+                    className={`rounded-lg p-4 shadow-md ${
+                      theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"
+                    }`}
+                  >
+                    <p className="text-sm italic mb-2">"{op.comentario}"</p>
+                    <p className="text-sm mb-1">
+                      ⭐ {op.calificacion} / <span className="text-gray-500">Publicado: {fecha}</span>
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
+
 
         {/* Formulario de opinión si está logueado */}
         {isLoggedIn() && (
           <div className="bg-white dark:bg-gray-700 mt-4 p-6 rounded-lg shadow-md">
             <h4 className="text-lg font-bold mb-2 text-white">Escribe tu opinión</h4>
-            <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} placeholder="Tu experiencia..." className="w-full p-2 rounded border mb-2 dark:bg-gray-800 dark:border-gray-600"></textarea>
+            <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} placeholder="Tu experiencia..." className="w-full p-2 rounded border mb-2 dark:bg-gray-800 dark:border-gray-600 text-white "></textarea>
             <select value={calificacion} onChange={(e) => setCalificacion(Number(e.target.value))} className="w-full p-2 rounded border mb-2 bg-gray-800 border-gray-600 text-white">
               {[1,2,3,4,5].map(n => (<option key={n} value={n}>{n} ⭐</option>))}
             </select>
@@ -339,6 +471,7 @@ export default function InfoHabitaciones() {
       </footer>
 
       <ChatBot theme={theme} />
+      <ToastContainer />
     </div>
   );
 }

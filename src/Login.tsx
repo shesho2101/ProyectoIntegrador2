@@ -13,35 +13,24 @@ export default function Login() {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Por favor ingresa un correo válido.");
-      return;
-    }
-  
     try {
-      const data = await loginUser(email, password);  // Login exitoso
-  
-      console.log("Login exitoso", data);  // Verificar que los datos se reciban correctamente
-  
-      // Acceder al token anidado correctamente
-      const token = data.token.token;  // Accede a la propiedad token dentro del objeto
-  
-      // Guardar el token y el userId en localStorage
-      localStorage.setItem("token", token);  // Guardar el token
-      localStorage.setItem("userId", data.userId);  // Guardar el userId
-  
-      console.log("Token y userId guardados en localStorage");  // Verificación
-  
-      // Redirigir al home o dashboard
+      const data = await loginUser(email, password); // fetch al backend
+      const token = data.token;
+
+      // Decodificar el payload del JWT
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userId = payload.id;
+
+      // Guardar en localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", String(userId));
+
+      // Redirigir a otra página
       navigate("/nosotros");
     } catch (err: any) {
-      setError(err.message || "Error desconocido");
+      setError("Credenciales inválidas");
     }
   };
-  
-  
   
   return (
     <div className="relative w-full h-screen">
