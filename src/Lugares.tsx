@@ -4,6 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { fetchHotels, Hotel } from "./services/api";
 import { isLoggedIn } from "./services/auth";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 type Favorito = {
   id: number;
@@ -73,7 +76,7 @@ const Alojamientos: React.FC = () => {
     e.stopPropagation();
 
     if (!isLoggedIn()) {
-      alert("Debes iniciar sesión para gestionar favoritos");
+    toast.warn("⚠️ Debes iniciar sesión para gestionar favoritos");
       return;
     }
 
@@ -107,9 +110,10 @@ const Alojamientos: React.FC = () => {
 
         const nuevo = await res.json();
         setFavoritos((prev) => [...prev, { id: nuevo.id, referencia_mongo_id: hotelId }]);
+        toast.success("✅ Agregado a favoritos  ");
       }
     } catch (error) {
-      alert("❌ Error al gestionar favorito");
+    toast.error("❌ Error al gestionar favorito");
       console.error(error);
     }
   };
@@ -129,33 +133,35 @@ const Alojamientos: React.FC = () => {
           <Link
             key={item}
             to={`/${item.toLowerCase()}`}
-            className={`text-lg font-semibold transition duration-300 ${
-              theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-            }`}
+            className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
           >
             {item}
           </Link>
         ))}
-        {isLoggedIn() && (
+
+        {isLoggedIn() ? (
           <>
             <Link
               to="/perfil"
-              className={`text-lg font-semibold transition duration-300 ${
-                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-              }`}
+              className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
             >
               Perfil
             </Link>
             <Link
               to="/carrito"
-              className={`text-2xl transition duration-300 ${
-                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-              }`}
+              className={`text-2xl transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
               title="Ver carrito"
             >
               🛒
-            </Link> 
+            </Link>
           </>
+        ) : (
+          <Link
+            to="/registro"
+            className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+          >
+            Registrarse
+          </Link>
         )}
       </div>
       <button
@@ -272,6 +278,7 @@ const Alojamientos: React.FC = () => {
           <p className="text-sm">© 2025 Wayra - Todos los derechos reservados.</p>
         </div>
       </footer>
+      <ToastContainer />
     </div>
   );
 };
