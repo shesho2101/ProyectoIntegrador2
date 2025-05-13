@@ -13,6 +13,7 @@ import { isLoggedIn } from "./services/auth";
 import LogoColor from "./imagenes/Logo(sin fondo).png";
 import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
 import Slider from "react-slick";
+import { toast, ToastContainer } from "react-toastify";
 
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -153,12 +154,14 @@ export default function InfoHabitaciones() {
 
   const handleAddToCart = async () => {
     if (!isLoggedIn()) {
-      alert("Debes iniciar sesión para añadir al carrito.");
-      return;
+      toast.warn("⚠️ Debes iniciar sesión para añadir al carrito.");
+      return; 
     }
+
     try {
       const token = localStorage.getItem("token");
       const usuarioId = Number(localStorage.getItem("userId"));
+
       const res = await fetch("https://wayraback.up.railway.app/api/cart", {
         method: "POST",
         headers: {
@@ -173,14 +176,20 @@ export default function InfoHabitaciones() {
           precio_total: precioTotal,
         }),
       });
+
       const data = await res.json();
-      if (!res.ok) return alert(`❌ Error: ${data.message}`);
-      alert("✅ ¡Producto añadido al carrito con éxito!");
+      if (!res.ok) {
+        toast.error(`❌ Error: ${data.message || "No se pudo agregar al carrito."}`);
+        return;
+      }
+
+      toast.success("✅ ¡Producto añadido al carrito con éxito!");
     } catch (error) {
-      alert("Ocurrió un error al añadir al carrito.");
       console.error(error);
+      toast.error("❌ Ocurrió un error al añadir al carrito.");
     }
   };
+
 
   if (!hotel) return <div className="mt-32 text-center">Cargando...</div>;
 
@@ -339,6 +348,7 @@ export default function InfoHabitaciones() {
       </footer>
 
       <ChatBot theme={theme} />
+      <ToastContainer />
     </div>
   );
 }
