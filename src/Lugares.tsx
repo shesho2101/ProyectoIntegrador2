@@ -19,6 +19,8 @@ const Alojamientos: React.FC = () => {
   const [filtroDestino, setFiltroDestino] = useState("");
   const [fechaLlegada, setFechaLlegada] = useState("");
   const [fechaSalida, setFechaSalida] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const alojamientosPorPagina = 9;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -118,6 +120,25 @@ const Alojamientos: React.FC = () => {
     hotel.ciudad.toLowerCase().includes(filtroDestino.toLowerCase())
   );
 
+const indiceUltimo = paginaActual * alojamientosPorPagina;
+const indicePrimero = indiceUltimo - alojamientosPorPagina;
+const hotelesAMostrar = hotelesFiltrados.slice(indicePrimero, indiceUltimo);
+const totalPaginas = Math.ceil(hotelesFiltrados.length / alojamientosPorPagina);
+
+const generarRangoPaginacion = () => {
+  const rangoVisible = 7;
+  let start = Math.max(1, paginaActual - Math.floor(rangoVisible / 2));
+  let end = start + rangoVisible - 1;
+
+  if (end > totalPaginas) {
+    end = totalPaginas;
+    start = Math.max(1, end - rangoVisible + 1);
+  }
+
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+};
+
+
   return (
     <div className={`flex flex-col min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
     <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
@@ -157,6 +178,10 @@ const Alojamientos: React.FC = () => {
             </Link> 
           </>
         )}
+
+        {!isLoggedIn() && (
+            <Link to="/registro" className={`text-lg font-semibold ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>Registrarse</Link>
+          )}
       </div>
       <button
         onClick={toggleTheme}
@@ -210,7 +235,7 @@ const Alojamientos: React.FC = () => {
       <main className="container mx-auto px-4 py-4 flex-grow">
         {error && <p className="text-red-500 text-center">{error}</p>}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {hotelesFiltrados.map((destino, index) => {
+        {hotelesAMostrar.map((destino, index) => {
             const esFavorito = favoritos.some((f) => f.referencia_mongo_id === destino._id);
             return (
               <div
@@ -246,6 +271,41 @@ const Alojamientos: React.FC = () => {
             );
           })}
         </div>
+        <div className="flex justify-center mt-6 space-x-1">
+  <button
+    onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+    disabled={paginaActual === 1}
+    className="px-2 py-1 text-xs rounded bg-gray-300 text-black hover:bg-yellow-400 disabled:opacity-50"
+  >
+    ←
+  </button>
+
+  {generarRangoPaginacion().map((num) => (
+    <button
+      key={num}
+      onClick={() => setPaginaActual(num)}
+      className={`px-3 py-1 text-xs rounded border ${
+        num === paginaActual
+          ? "bg-yellow-400 text-black font-bold"
+          : theme === "dark"
+          ? "bg-gray-700 text-white border-gray-600"
+          : "bg-white text-black border-gray-300"
+      } hover:scale-105 transition-transform`}
+    >
+      {num}
+    </button>
+  ))}
+
+  <button
+    onClick={() => setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))}
+    disabled={paginaActual === totalPaginas}
+    className="px-2 py-1 text-xs rounded bg-gray-300 text-black hover:bg-yellow-400 disabled:opacity-50"
+  >
+    →
+  </button>
+</div>
+
+
       </main>
 
       <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} mt-auto py-8 px-6 md:px-12`}>

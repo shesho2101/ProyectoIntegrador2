@@ -16,6 +16,7 @@ interface Vuelo {
   emissions_variation: string;
   origin: string;
   destination: string;
+  departure_date?: string;
 }
 
 type ChatMessage = { from: "user" | "bot"; text: string };
@@ -50,7 +51,6 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
       <div onClick={toggleChat} className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer transition transform hover:scale-105">
         <span className="text-xl">💬</span>
       </div>
-
       <div className={`fixed bottom-0 right-0 w-full md:w-96 overflow-hidden rounded-t-3xl shadow-xl transition-all duration-300 z-50 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}>
         <div className="flex justify-end p-4">
           <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
@@ -81,6 +81,7 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
 const Vuelos: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [flights, setFlights] = useState<Vuelo[]>([]);
+  const [filteredFlights, setFilteredFlights] = useState<Vuelo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [origin, setOrigin] = useState("Bucaramanga");
   const [destination, setDestination] = useState("");
@@ -88,6 +89,8 @@ const Vuelos: React.FC = () => {
   const [returnDate, setReturnDate] = useState("");
   const [flightType, setFlightType] = useState<"ida" | "ida_vuelta">("ida");
   const navigate = useNavigate();
+  const [paginaActual, setPaginaActual] = useState(1);
+  const vuelosPorPagina = 9;
 
   const ciudades = ["Barranquilla", "Bucaramanga", "Cali", "Medellin", "Cartagena", "Bogota", "Pereira"];
 
@@ -101,8 +104,22 @@ const Vuelos: React.FC = () => {
   useEffect(() => {
     fetch("https://wayraback.up.railway.app/api/flights")
       .then((res) => res.json())
-      .then((data) => setFlights(data))
-      .catch(() => setError("No se pudieron cargar los vuelos"));
+      .then((data) => {
+        setFlights(data);
+        const flattened = data.flatMap((doc: any) =>
+          doc.flights.map((v: any) => ({
+            ...v,
+            origin: doc.search_parameters?.departure ?? "",
+            destination: doc.search_parameters?.destination ?? "",
+            departure_date: doc.search_parameters?.departure_date ?? "",
+          }))
+        );
+        setFilteredFlights(flattened);
+      })
+      .catch((err) => {
+        console.error("❌ Error en fetch:", err);
+        setError("No se pudieron cargar los vuelos");
+      });
   }, []);
 
   const toggleTheme = () => {
@@ -111,14 +128,44 @@ const Vuelos: React.FC = () => {
     localStorage.setItem("theme", newTheme);
   };
 
-  const vuelosFiltrados = flights.filter(
-    (vuelo) =>
-      vuelo.origin.toLowerCase().includes(origin.toLowerCase()) &&
-      vuelo.destination.toLowerCase().includes(destination.toLowerCase())
-  );
+  const handleSearch = () => {
+    const filtered = flights.flatMap((doc: any) =>
+      doc.flights
+        .map((v: any) => ({
+          ...v,
+          origin: doc.search_parameters?.departure ?? "",
+          destination: doc.search_parameters?.destination ?? "",
+          departure_date: doc.search_parameters?.departure_date ?? "",
+        }))
+        .filter((vuelo: Vuelo) =>
+          vuelo.origin.toLowerCase().trim() === origin.toLowerCase().trim() &&
+          vuelo.destination.toLowerCase().trim() === destination.toLowerCase().trim() &&
+          (departureDate === "" || vuelo.departure_date?.startsWith(departureDate))
+        )
+    );
+    setFilteredFlights(filtered);
+  };
+
+const totalPaginas = Math.ceil(filteredFlights.length / vuelosPorPagina);
+const indiceUltimo = paginaActual * vuelosPorPagina;
+const indicePrimero = indiceUltimo - vuelosPorPagina;
+const vuelosAMostrar = filteredFlights.slice(indicePrimero, indiceUltimo);
+
+const generarRangoPaginacion = () => {
+  const rangoVisible = 7;
+  let start = Math.max(1, paginaActual - Math.floor(rangoVisible / 2));
+  let end = start + rangoVisible - 1;
+  if (end > totalPaginas) {
+    end = totalPaginas;
+    start = Math.max(1, end - rangoVisible + 1);
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+};
 
   return (
     <div className={`flex flex-col min-h-screen w-full transition-colors duration-300 font-sans ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      
+
       {/* Header */}
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <Link to="/"><img src={Logo} alt="Logo de Wayra" className="h-16" /></Link>
@@ -141,7 +188,7 @@ const Vuelos: React.FC = () => {
         </button>
       </nav>
 
-      {/* Filtros */}
+      {/* Filtros con botón */}
       <div className="container mx-auto px-4 py-4 mt-24">
         <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md flex flex-wrap items-center p-4 gap-4`}>
           <div className="flex-1 min-w-[200px]">
@@ -174,30 +221,89 @@ const Vuelos: React.FC = () => {
               <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="w-full px-4 py-2 rounded-md border" />
             </div>
           )}
+          <div className="flex justify-end items-end">
+            <button onClick={handleSearch} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+              Buscar
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Resultados */}
       <main className="container mx-auto px-4 py-4 flex-grow">
         {error && <p className="text-red-500 text-center">{error}</p>}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {vuelosFiltrados.map((vuelo) => (
-            <div key={vuelo._id} className={`rounded-lg shadow-md overflow-hidden relative ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
-              <div className="p-4">
-                <h3 className="text-lg font-bold mb-1">{vuelo.airline}</h3>
-                <p className="text-sm mb-1"><FaPlaneDeparture className="inline mr-2" /> {vuelo.origin} - {vuelo.departure_time}</p>
-                <p className="text-sm mb-1"><FaPlaneArrival className="inline mr-2" /> {vuelo.destination} - {vuelo.arrival_time}</p>
-                <p className="text-sm">Duración: {vuelo.duration}</p>
-                <p className="text-sm">Escalas: {vuelo.stops}</p>
-                <p className="text-sm">CO₂: {vuelo.co2_emissions}kg ({vuelo.emissions_variation})</p>
-                <p className="text-lg font-bold text-green-500 mt-2">${vuelo.price.toLocaleString("es-CO")}</p>
-                <button onClick={() => navigate("/pagos")} className="mt-4 w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700 transition">Comprar</button>
+        {filteredFlights.length === 0 ? (
+          <p className="text-center text-gray-500 text-lg mt-10">
+            No hay vuelos disponibles para los filtros seleccionados.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {vuelosAMostrar.map((vuelo, index) => (
+              <div key={vuelo._id || index} className={`rounded-xl shadow-lg overflow-hidden border transition hover:scale-[1.02] duration-200 ${theme === "dark" ? "bg-gray-800 text-white border-gray-600" : "bg-white text-black border-gray-200"}`}>
+                <div className="p-4 space-y-2">
+                  <h3 className="text-xl font-bold text-center">{vuelo.airline}</h3>
+                  <div className="flex justify-between text-sm">
+                    <span><FaPlaneDeparture className="inline mr-1" /> {vuelo.origin}</span>
+                    <span>{vuelo.departure_time}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span><FaPlaneArrival className="inline mr-1" /> {vuelo.destination}</span>
+                    <span>{vuelo.arrival_time}</span>
+                  </div>
+                  <div className="text-sm text-center">
+                    🕒 Duración: <strong>{vuelo.duration}</strong> | Escalas: <strong>{vuelo.stops}</strong>
+                  </div>
+                  <div className="text-sm text-center">
+                    🌱 CO₂: <strong>{vuelo.co2_emissions} kg</strong> ({vuelo.emissions_variation})
+                  </div>
+                  <div className="text-xl font-bold text-center text-green-500">
+                    ${vuelo.price.toLocaleString("es-CO")}
+                  </div>
+                  <button onClick={() => navigate("/pagos")} className="w-full mt-2 py-2 rounded-md bg-teal-600 hover:bg-teal-700 text-white transition font-semibold">
+                    Reservar vuelo
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </main>
+            ))}
+          </div>
+          
+        )}
+          <div className="flex justify-center mt-6 space-x-1">
+          <button
+            onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+            disabled={paginaActual === 1}
+            className="px-2 py-1 text-xs rounded bg-gray-300 text-black hover:bg-yellow-400 disabled:opacity-50"
+          >
+            ←
+          </button>
 
+          {generarRangoPaginacion().map((num) => (
+            <button
+              key={num}
+              onClick={() => setPaginaActual(num)}
+              className={`px-3 py-1 text-xs rounded border ${
+                num === paginaActual
+                  ? "bg-yellow-400 text-black font-bold"
+                  : theme === "dark"
+                  ? "bg-gray-700 text-white border-gray-600"
+                  : "bg-white text-black border-gray-300"
+              } hover:scale-105 transition-transform`}
+            >
+              {num}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))}
+            disabled={paginaActual === totalPaginas}
+            className="px-2 py-1 text-xs rounded bg-gray-300 text-black hover:bg-yellow-400 disabled:opacity-50"
+          >
+            →
+          </button>
+        </div>
+
+      </main>
+      
       {/* Footer */}
       <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} mt-auto py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
