@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaInstagram } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
 import { ToastContainer, toast } from "react-toastify";
+import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
+import LogoColor from "./imagenes/Logo(sin fondo).png";
 import 'react-toastify/dist/ReactToastify.css';
 
 const Carrito = () => {
@@ -158,9 +159,11 @@ const Carrito = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
+   <div className={`min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-        <img src={Logo} alt="Wayra logo" className="h-16" />
+        <Link to="/">
+          <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link key={item} to={`/${item.toLowerCase()}`} className={`text-lg font-semibold ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>{item}</Link>
@@ -224,7 +227,9 @@ const Carrito = () => {
       <footer className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-900"} text-white py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
-            <img src={Logo} alt="Wayra logo" className="h-12 mb-2" />
+            <Link to="/">
+              <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+              </Link>            
             <h3 className="text-base font-bold mb-1">Contáctanos</h3>
             <p className="text-sm">Calle 123, Bogotá, Colombia</p>
             <p className="text-sm">+57 123 456 7890</p>
