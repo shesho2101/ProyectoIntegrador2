@@ -270,7 +270,7 @@ export default function InfoHabitaciones() {
         referencia_mongo_id: id,
         calificacion,
         comentario,
-        fecha_publicacion: new Date().toISOString(), // Generar fecha actual
+        fecha_publicacion: new Date().toISOString(), 
       };
 
       setHotel((prev: { opiniones: any; }) => ({
