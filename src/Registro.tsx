@@ -129,9 +129,11 @@ export default function Registro() {
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-30 backdrop-blur-md shadow-md">
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        <Link to="/">
+          <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6">
-          {["Inicio", "Nosotros", "Vuelos", "Hoteles", "Bus", "Contacto"].map((item) => (
+          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
             <Link
               key={item}
               to={`/${item.toLowerCase()}`}
@@ -146,6 +148,16 @@ export default function Registro() {
       {/* Contenido */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 pt-20">
         <div className="bg-white bg-opacity-90 rounded-3xl p-10 w-full max-w-md shadow-lg">
+
+        <div className="text-left mb-4">
+            <Link
+              to="/"
+              className="text-yellow-600 hover:underline text-lg"
+            >
+              ← Volver
+            </Link>
+          </div>
+          
           {/* Encabezado */}
           <p className="text-sm text-gray-500 mb-2">
             <Link to="/login" className="text-yellow-600 hover:underline">Inicia sesión</Link> &gt; Crear una cuenta
@@ -193,7 +205,11 @@ export default function Registro() {
             >
               Crear cuenta
             </button>
-            {mensaje && <p className="text-center text-sm mt-2 text-red-500">{mensaje}</p>}
+            {mensaje && (
+              <p className={`text-center text-sm mt-2 ${mensaje.includes("Error") ? "text-red-500" : "text-black"}`}>
+                {mensaje}
+              </p>
+            )}
           </form>
         </div>
         <ChatBot theme={theme} />

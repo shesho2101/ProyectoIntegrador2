@@ -101,12 +101,18 @@ const Bus: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);  
   };
 
   const handleHourFilter = (hourRange: string) => {
@@ -139,7 +145,9 @@ const Bus: React.FC = () => {
 
       {/* Header */}
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
+            <Link to="/">
         <img src={Logo} alt="Logo de Wayra" className="h-16" />
+      </Link>
         <div className="flex space-x-6 font-bold">
         {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
               <Link
@@ -153,16 +161,35 @@ const Bus: React.FC = () => {
               </Link>
             ))}
 
-            {isLoggedIn() && (
-              <Link
-                to="/perfil"
-                className={`text-lg font-semibold transition duration-300 ${
-                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-                }`}
-              >
-                Perfil
-              </Link>
-            )}
+              {isLoggedIn() && (
+                <>
+                  <Link
+                    to="/perfil"
+                    className={`text-lg font-semibold transition duration-300 ${
+                      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                    }`}
+                  >
+                    Perfil
+                  </Link>
+                  <Link
+                    to="/carrito"
+                    className={`text-2xl transition duration-300 ${
+                      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                    }`}
+                    title="Ver carrito"
+                  >
+                    🛒
+                  </Link>
+                </>
+              )}
+
+          {/* Mostrar "Registrarse" solo si no está logueado */}
+          {!isLoggedIn() && (
+            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
+              Registrarse
+            </Link>
+          )}
+
         </div>
         <button
           onClick={toggleTheme}

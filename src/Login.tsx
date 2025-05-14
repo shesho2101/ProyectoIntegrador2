@@ -10,28 +10,28 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Por favor ingresa un correo válido.");
-      return;
-    }
-  
     try {
-      const data = await loginUser(email, password);
-      console.log("Login exitoso", data);
-  
-      // Ejemplo: guardar el token en localStorage
-      localStorage.setItem("token", data.token);
-  
-      // Redireccionar al home o dashboard
+      const data = await loginUser(email, password); // fetch al backend
+      const token = data.token;
+
+      // Decodificar el payload del JWT
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userId = payload.id;
+
+      // Guardar en localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", String(userId));
+
+      // Redirigir a otra página
       navigate("/nosotros");
     } catch (err: any) {
-      setError(err.message || "Error desconocido");
+      setError("Credenciales inválidas");
     }
   };
+  
   return (
     <div className="relative w-full h-screen">
       <div className="absolute inset-0 w-full h-full">
@@ -42,20 +42,29 @@ export default function Login() {
         />
       </div>
       
+      
       <div className="absolute top-16 left-0 right-0 flex justify-center z-10">
         <img 
           src={Logo} 
           alt="Wayra logo" 
-          className="h-25" 
+          className="h-10" 
         />
       </div>
       
       <div className="absolute inset-0 flex items-center justify-center z-10">
         <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-3xl p-12 w-full max-w-lg shadow-lg">
+        <div className="text-left mb-4">
+            <button
+              onClick={() => navigate("/registro")} 
+              className="text-yellow-600 hover:text-yellow-400 text-lg font-medium"
+            >
+              ← Volver
+            </button>
+          </div>
           <h1 className="text-center text-black text-xl font-medium mb-8">
             ¡Conéctate con Colombia y comienza tu próxima aventura!
           </h1>
-
+          
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="relative">
               <input 

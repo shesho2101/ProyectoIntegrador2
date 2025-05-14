@@ -1,18 +1,24 @@
-import { useEffect, useState } from "react";
-import { FaCommentDots, FaConciergeBell, FaDollarSign, FaFacebook, FaGithub, FaInstagram, FaMapMarkerAlt, FaStar, FaTimesCircle } from "react-icons/fa";
+import { differenceInDays } from "date-fns";
+import { useEffect, useState, useRef } from "react";
+import {
+  FaDollarSign, FaFacebook, FaGithub, FaInstagram,
+  FaMapMarkerAlt, FaStar, FaChevronLeft, FaChevronRight, FaHeart
+} from "react-icons/fa";
 import { Link, useParams } from "react-router-dom";
 import { getHotelById } from "../src/services/api";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
+import LogoColor from "./imagenes/Logo(sin fondo).png";
+import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
+import Slider from "react-slick";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-// ChatBot
 const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState([{ from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" }]);
   const [inputValue, setInputValue] = useState("");
-
   const toggleChat = () => setIsChatOpen(!isChatOpen);
-
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -24,18 +30,12 @@ const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
       setMessages((prev) => [...prev, botReply]);
     }, 800);
   };
-
   return (
     <>
-      <div
-        onClick={toggleChat}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer hover:scale-105 transition"
-      >
+      <div onClick={toggleChat} className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer hover:scale-105 transition">
         <span className="text-xl">💬</span>
       </div>
-      <div
-        className={`fixed bottom-0 right-0 w-full md:w-96 rounded-t-3xl shadow-xl z-50 transition-all duration-300 overflow-hidden ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
-      >
+      <div className={`fixed bottom-0 right-0 w-full md:w-96 rounded-t-3xl shadow-xl z-50 transition-all duration-300 overflow-hidden ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}>
         <div className="flex justify-end p-4">
           <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
         </div>
@@ -64,114 +64,395 @@ export default function InfoHabitaciones() {
   const { id } = useParams();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [hotel, setHotel] = useState<any>(null);
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [precioTotal, setPrecioTotal] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const sliderRef = useRef<any>(null);
+  const [comentario, setComentario] = useState("");
+  const [calificacion, setCalificacion] = useState(5);
+  const [esFavorito, setEsFavorito] = useState(false);
+  const [favoritoId, setFavoritoId] = useState<number | null>(null);
+  const [opiniones, setOpiniones] = useState<any[]>([]);
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) setTheme(savedTheme);
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
 
   useEffect(() => {
-    if (id) {
-      getHotelById(id).then(setHotel).catch(console.error);
+    if (id) getHotelById(id).then(setHotel).catch(console.error);
+  }, [id]);
+
+  useEffect(() => {
+    if (fechaInicio && fechaFin && hotel?.precio) {
+      const dias = differenceInDays(new Date(fechaFin), new Date(fechaInicio));
+      setPrecioTotal(dias > 0 ? dias * hotel.precio : 0);
+    }
+  }, [fechaInicio, fechaFin, hotel]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");
+    if (token && usuarioId && id) {
+      fetch(`https://wayraback.up.railway.app/api/favorites/user/${usuarioId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const favorito = data.find(
+            (f: any) => f.tipo_favorito === "hotel" && f.referencia_mongo_id === id
+          );
+          if (favorito) {
+            setEsFavorito(true);
+            setFavoritoId(favorito.id);
+          }
+        });
     }
   }, [id]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  useEffect(() => {
+    const cargarOpiniones = async () => {
+      try {
+        const res = await fetch("https://wayraback.up.railway.app/api/opinions");
+        const todas = await res.json();
+        const filtradas = todas.filter(
+          (op: any) => op.tipo_opinion === "hotel" && op.referencia_mongo_id === id
+        );
+        setOpiniones(filtradas);
+      } catch (error) {
+        console.error("Error al cargar opiniones:", error);
+      }
+    };
+
+    if (id) cargarOpiniones();
+  }, [id]);
+
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
+
+  const CustomPrevArrow = ({ onClick }: any) => (
+    <button onClick={onClick} className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full z-10 hover:bg-opacity-80">
+      <FaChevronLeft />
+    </button>
+  );
+
+  const CustomNextArrow = ({ onClick }: any) => (
+    <button onClick={onClick} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full z-10 hover:bg-opacity-80">
+      <FaChevronRight />
+    </button>
+  );
+
+  const handleThumbnailClick = (index: number) => {
+    sliderRef.current?.slickGoTo(index);
+    setCurrentSlide(index);
+  };
+
+  const toggleFavorito = async () => {
+    const token = localStorage.getItem("token");
+    const usuarioId = localStorage.getItem("userId");
+    if (!isLoggedIn() || !token || !usuarioId || !id) {
+      toast.warning("⚠️ Debes iniciar sesión para gestionar favoritos.");
+      return;
+    }
+
+    try {
+      if (esFavorito && favoritoId) {
+        await fetch(`https://wayraback.up.railway.app/api/favorites/${favoritoId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.info("❌ Eliminado de favoritos");
+        setEsFavorito(false);
+        setFavoritoId(null);
+      } else {
+        const res = await fetch(`https://wayraback.up.railway.app/api/favorites`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            usuario_id: Number(usuarioId),
+            tipo_favorito: "hotel",
+            referencia_mongo_id: id,
+          }),
+        });
+        const nuevo = await res.json();
+        toast.success("❤️ Añadido a favoritos");
+        setEsFavorito(true);
+        setFavoritoId(nuevo.id);
+      }
+    } catch (error) {
+      toast.error("❌ Error al gestionar el favorito");
+      console.error(error);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!isLoggedIn()) {
+      toast.warn("⚠️ Debes iniciar sesión para añadir al carrito.");
+      return; 
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const usuarioId = Number(localStorage.getItem("userId"));
+
+      const res = await fetch("https://wayraback.up.railway.app/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          usuario_id: usuarioId,
+          producto_id: id,
+          tipo_producto: "hotel",
+          cantidad: 1,
+          precio_total: precioTotal,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(`❌ Error: ${data.message || "No se pudo agregar al carrito."}`);
+        return;
+      }
+
+      toast.success("✅ ¡Producto añadido al carrito con éxito!");
+    } catch (error) {
+      console.error(error);
+      toast.error("❌ Ocurrió un error al añadir al carrito.");
+    }
+  };
+
+  const handleSubmitOpinion = async () => {
+    const token = localStorage.getItem("token");
+    const usuarioId = Number(localStorage.getItem("userId"));
+
+    if (!comentario || !calificacion || !id) {
+      toast.warn("Por favor completa todos los campos.");
+      return;
+    }
+
+    try {
+      const res = await fetch("https://wayraback.up.railway.app/api/opinions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          usuario_id: usuarioId,
+          tipo_opinion: "hotel",
+          referencia_mongo_id: id,
+          calificacion,
+          comentario,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) return toast.error(`❌ Error: ${data.message}`);
+      toast.success("✅ Opinión enviada con éxito");
+      setComentario("");
+      setCalificacion(5);
+      getHotelById(id).then(setHotel);
+      const nuevaOpinion = {
+        usuario_id: usuarioId,
+        tipo_opinion: "hotel",
+        referencia_mongo_id: id,
+        calificacion,
+        comentario,
+        fecha_publicacion: new Date().toISOString(), // Generar fecha actual
+      };
+
+      setHotel((prev: { opiniones: any; }) => ({
+        ...prev,
+        opiniones: [nuevaOpinion, ...(prev?.opiniones || [])],
+      }));
+
+    } catch (error) {
+      console.error(error);
+      toast.error("❌ Ocurrió un error al enviar la opinión");
+    }
+  };
 
   if (!hotel) return <div className="mt-32 text-center">Cargando...</div>;
+
 
   return (
     <div className={`min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+        <Link to="/">
+          <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6 font-bold">
-        {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-  <Link
-    key={item}
-    to={`/${item.toLowerCase()}`}
-    className={`text-lg font-semibold transition duration-300 ${
-      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-    }`}
-  >
-    {item}
-  </Link>
-))}
-
-{isLoggedIn() && (
-  <Link
-    to="/perfil"
-    className={`text-lg font-semibold transition duration-300 ${
-      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-    }`}
-  >
-    Perfil
-  </Link>
-)}
-
+          {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
+            <Link key={item} to={`/${item.toLowerCase()}`} className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>{item}</Link>
+          ))}
+          {isLoggedIn() && (
+            <>
+              <Link to="/perfil" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>Perfil</Link>
+              <Link to="/carrito" className={`text-2xl transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`} title="Ver carrito">🛒</Link>
+            </>
+          )}
+          {!isLoggedIn() && (
+            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>Registrarse</Link>
+          )}
         </div>
-        <button
-          onClick={toggleTheme}
-          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}
-        >
+        <button onClick={toggleTheme} className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 transition-colors duration-300 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}>
           {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
         </button>
       </nav>
 
       <div className="h-24" />
-
       <main className="px-4 md:px-16 py-8">
-        <h1 className="text-4xl font-extrabold mb-2">{hotel.nombre}</h1>
-        <p className="text-lg text-gray-500 mb-6">{hotel.descripcion}</p>
+        <div className="relative">
+          <button 
+            onClick={toggleFavorito} 
+            className="absolute top-0 right-0 p-3 text-2xl z-10"
+          >
+            <FaHeart className={esFavorito ? "text-red-500" : "text-gray-400"} />
+          </button>
+          <h1 className="text-4xl font-extrabold mb-2">{hotel.nombre}</h1>
+        </div>
+        <p className={`text-md mb-6 ${theme === "dark" ? "text-white" : "text-gray-500"}`}>{hotel.descripcion}</p>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-2/3">
+            <div className="relative w-full max-w-full h-[600px] mb-2">
+              <Slider
+                ref={sliderRef}
+                dots={false}
+                autoplay={true}
+                autoplaySpeed={3000}
+                arrows={true}
+                infinite={true}
+                swipe={false}
+                draggable={false}
+                beforeChange={(_: number, newIndex: number) => setCurrentSlide(newIndex)}
+                prevArrow={<CustomPrevArrow />}
+                nextArrow={<CustomNextArrow />}
+              >
+                {hotel.imagenes.map((img: string, index: number) => (
+                  <div key={index} className="w-full h-[580px]">
+                    <img
+                      src={img}
+                      alt={`Imagen ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg shadow-md"
+                    />
+                    {index === currentSlide && (
+                      <span className="absolute bottom-4 right-4 bg-black bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
+                        {currentSlide + 1} / {hotel.imagenes.length}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </Slider>
+            </div>
 
-        <img
-          src={hotel.imagenes[0]}
-          alt={hotel.nombre}
-          className="w-full max-h-[500px] object-cover rounded-xl shadow-md mb-8"
-        />
+            <div className="flex justify-center gap-2 flex-wrap mb-4">
+              {hotel.imagenes.map((thumb: string, i: number) => (
+                <img
+                  key={i}
+                  src={thumb}
+                  onClick={() => handleThumbnailClick(i)}
+                  className={`w-20 h-16 object-cover cursor-pointer rounded border-2 transition-all duration-200 ${currentSlide === i ? "border-yellow-400 scale-105" : "border-transparent hover:border-gray-400"}`}
+                  alt={`Miniatura ${i + 1}`}
+                />
+              ))}
+            </div>
+          </div>
 
+          <div className="md:w-1/3 flex items-start md:items-center mt-[-4]">
+            <div className="bg-white dark:bg-gray-700 text-black dark:text-white p-4 rounded shadow-md w-full">
+              <h3 className="text-lg font-bold mb-2">Reserva tu estadía</h3>
+              <label className="block mb-1 font-semibold">Llegada</label>
+              <input type="date" className="w-full mb-3 p-2 border rounded dark:bg-gray-800 dark:border-gray-600" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+              <label className="block mb-1 font-semibold">Salida</label>
+              <input type="date" className="w-full mb-3 p-2 border rounded dark:bg-gray-800 dark:border-gray-600" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+              {precioTotal > 0 && (
+                <p className="text-md font-semibold mb-3">Total: <span className="text-green-500">${precioTotal.toLocaleString("es-CO")} COP</span></p>
+              )}
+              <button onClick={handleAddToCart} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition">Añadir al carrito</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Info rápida */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-800 text-white p-4 rounded shadow-md flex items-center">
             <FaMapMarkerAlt className="text-pink-500 mr-2" /> <span><strong>Ciudad:</strong> {hotel.ciudad}</span>
           </div>
           <div className="bg-gray-800 text-white p-4 rounded shadow-md flex items-center">
-            <FaDollarSign className="text-green-500 mr-2" /> <span><strong>Precio por noche:</strong> ${hotel.precio}</span>
+            <FaDollarSign className="text-green-500 mr-2" /> <span><strong>Precio por noche:</strong> ${hotel.precio.toLocaleString("es-CO")}</span>
           </div>
           <div className="bg-gray-800 text-white p-4 rounded shadow-md flex items-center">
             <FaStar className="text-yellow-500 mr-2" /> <span><strong>Rating:</strong> {hotel.rating}</span>
           </div>
         </div>
 
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold flex items-center mb-2"><FaConciergeBell className="mr-2" />Servicios</h2>
-          {hotel.facilidades.length > 0 ? (
-            <ul className="list-disc ml-6 text-lg">
-              {hotel.facilidades.map((servicio: string, i: number) => (
-                <li key={i}>{servicio}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-red-500 flex items-center"><FaTimesCircle className="mr-2" />No hay servicios brindados.</p>
-          )}
-        </section>
+        {opiniones.length > 0 && (
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md mb-8">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+              🗨 Opiniones del alojamiento
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {opiniones.map((op: any, i: number) => {
+                const fecha =
+                  op.fecha_publicacion && !isNaN(Date.parse(op.fecha_publicacion))
+                    ? new Date(op.fecha_publicacion).toLocaleString("es-CO", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Fecha no disponible";
 
-        <section>
-          <h2 className="text-2xl font-bold flex items-center mb-2"><FaCommentDots className="mr-2" />Opiniones</h2>
-          {hotel.opiniones.length > 0 ? (
-            <ul className="list-disc ml-6 text-lg">
-              {hotel.opiniones.map((op: string, i: number) => (
-                <li key={i}>{op}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-red-500 flex items-center"><FaTimesCircle className="mr-2" />No hay opiniones disponibles.</p>
-          )}
-        </section>
+                return (
+                  <div
+                    key={i}
+                    className={`rounded-lg p-4 shadow-md ${
+                      theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"
+                    }`}
+                  >
+                    <p className="text-sm italic mb-2">"{op.comentario}"</p>
+                    <p className="text-sm mb-1">
+                      ⭐ {op.calificacion} / <span className="text-gray-500">Publicado: {fecha}</span>
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+
+        {/* Formulario de opinión si está logueado */}
+        {isLoggedIn() && (
+          <div className="bg-white dark:bg-gray-700 mt-4 p-6 rounded-lg shadow-md">
+            <h4 className="text-lg font-bold mb-2 text-white">Escribe tu opinión</h4>
+            <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} placeholder="Tu experiencia..." className="w-full p-2 rounded border mb-2 dark:bg-gray-800 dark:border-gray-600 text-white "></textarea>
+            <select value={calificacion} onChange={(e) => setCalificacion(Number(e.target.value))} className="w-full p-2 rounded border mb-2 bg-gray-800 border-gray-600 text-white">
+              {[1,2,3,4,5].map(n => (<option key={n} value={n}>{n} ⭐</option>))}
+            </select>
+            <button onClick={handleSubmitOpinion} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Enviar opinión</button>
+          </div>
+        )}
       </main>
 
-      <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} py-8 px-6 md:px-12`}>
+      {/* Footer sin cambios */}
+      <footer className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-900"} text-white py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
-            <img src={Logo} alt="Wayra logo" className="h-12 mb-2" />
+            <img src={Logo} alt="Logo de Wayra" className="h-16" />
             <h3 className="text-base font-bold mb-1">Contáctanos</h3>
             <p className="text-sm">Calle 123, Bogotá, Colombia</p>
             <p className="text-sm">+57 123 456 7890</p>
@@ -186,12 +467,11 @@ export default function InfoHabitaciones() {
             </div>
           </div>
         </div>
-        <div className="text-center mt-4">
-          <p className="text-sm">© 2025 Wayra - Todos los derechos reservados.</p>
-        </div>
+        <div className="text-center mt-4 text-sm">© 2025 Wayra - Todos los derechos reservados.</div>
       </footer>
 
       <ChatBot theme={theme} />
+      <ToastContainer />
     </div>
   );
 }

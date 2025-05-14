@@ -98,7 +98,9 @@ export default function Recibos(): JSX.Element {
     <div className="flex flex-col min-h-screen bg-white font-sans">
       {/* Header global */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 bg-white bg-opacity-80 backdrop-blur-md shadow-md">
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+      <Link to="/">
+  <img src={Logo} alt="Logo de Wayra" className="h-16" />
+</Link>
         <div className="flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto", "Perfil"].map((item) => (
             <Link
@@ -177,7 +179,9 @@ export default function Recibos(): JSX.Element {
       <footer className="bg-cyan-400 text-black py-12 px-8 mt-auto">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
-            <img src={Logo} alt="Wayra logo" className="h-10 mb-3" />
+           <Link to="/">
+            <img src={Logo} alt="Logo de Wayra" className="h-16" />
+          </Link>
             <h3 className="font-bold">Contáctanos</h3>
             <p>Carrera 11 #93-46, Bogotá, Colombia</p>
             <p>Teléfono: +57 123 456 7890</p>

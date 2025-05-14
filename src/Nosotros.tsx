@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import HeroImage from "./imagenes/FondoInicio.jpg";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import Persona from "./imagenes/persona.jpg";
-import { isLoggedIn } from "./services/auth"; 
+import { isLoggedIn } from "./services/auth";
 
 
 // ChatBot
@@ -93,41 +93,69 @@ export default function Nosotros() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
+  
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === "light" ? "dark" : "light"));
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);  
   };
+  
 
   return (
     <div className={`flex flex-col min-h-screen w-full transition-colors duration-300 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
+      <Link to="/">
+  <img src={Logo} alt="Logo de Wayra" className="h-16" />
+</Link>
         <div className="flex space-x-6 font-bold">
         {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-            <Link
-              key={item}
-              to={`/${item.toLowerCase()}`}
-              className={`text-lg font-semibold transition duration-300 ${
-                theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-              }`}
-            >
-              {item}
-            </Link>
-          ))}
+        <Link
+          key={item}
+          to={`/${item.toLowerCase()}`}
+          className={`text-lg font-semibold transition duration-300 ${
+            theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+          }`}
+        >
+          {item}
+        </Link>
+      ))}
+          {isLoggedIn() && (
+            <>
+              <Link
+                to="/perfil"
+                className={`text-lg font-semibold transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+              >
+                Perfil
+              </Link>
+              <Link
+                to="/carrito"
+                className={`text-2xl transition duration-300 ${
+                  theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
+                }`}
+                title="Ver carrito"
+              >
+                🛒
+              </Link>
+            </>
+          )}
 
-{isLoggedIn() && (
-  <Link
-    to="/perfil"
-    className={`text-lg font-semibold transition duration-300 ${
-      theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"
-    }`}
-  >
-    Perfil
-  </Link>
-)}
+          {/* Mostrar "Registrarse" solo si no está logueado */}
+          {!isLoggedIn() && (
+            <Link to="/registro" className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
+              Registrarse
+            </Link>
+          )}
+
         </div>
         <button
           onClick={toggleTheme}
@@ -193,7 +221,9 @@ export default function Nosotros() {
       <footer className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-900 text-white"} py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
-            <img src={Logo} alt="Wayra logo" className="h-12 mb-2" />
+              <Link to="/">
+              <img src={Logo} alt="Logo de Wayra" className="h-16" />
+            </Link>
             <h3 className="text-base font-bold mb-1">Contáctanos</h3>
             <p className="text-sm">Calle 123, Bogotá, Colombia</p>
             <p className="text-sm">+57 123 456 7890</p>
