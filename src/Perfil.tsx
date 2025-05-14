@@ -1,54 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCalendarAlt, FaStar, FaTrash, FaUser, FaSignOutAlt } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import Logo from "./imagenes/Logo(sin fondo).png";
-
-const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState([{ from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" }]);
-  const [inputValue, setInputValue] = useState("");
-  const toggleChat = () => setIsChatOpen(!isChatOpen);
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    const userMessage = { from: "user" as const, text: inputValue.trim() };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setTimeout(() => {
-      const botReply = { from: "bot" as const, text: "Gracias por tu mensaje. Pronto te responderemos. ✈️" };
-      setMessages((prev) => [...prev, botReply]);
-    }, 800);
-  };
-  return (
-    <>
-      <div onClick={toggleChat} className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer hover:scale-105">
-        <span className="text-xl">💬</span>
-      </div>
-      <div className={`fixed bottom-0 right-0 w-full md:w-96 rounded-t-3xl shadow-xl transition-all duration-300 z-50 overflow-hidden ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}>
-        <div className="flex justify-end p-4">
-          <button onClick={toggleChat} className="text-gray-500 hover:text-yellow-500">✖</button>
-        </div>
-        <div className="px-6 overflow-y-auto h-56 space-y-4">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`p-3 rounded-lg max-w-xs ${msg.from === "user" ? "bg-yellow-400 self-end text-gray-900" : theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-black"}`}>
-              <p>{msg.text}</p>
-            </div>
-          ))}
-        </div>
-        <div className="px-6 py-4">
-          <form onSubmit={handleSendMessage}>
-            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Escribe tu mensaje..." className={`w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${theme === "dark" ? "bg-gray-700 text-white border-gray-500" : "bg-white text-black border-gray-300"}`} />
-          </form>
-        </div>
-      </div>
-    </>
-  );
-};
+import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
+import LogoColor from "./imagenes/Logo(sin fondo).png";
 
 export default function Perfil() {
   const [activeSection, setActiveSection] = useState("datos-personales");
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [userData, setUserData] = useState<{ nombre: string; email: string } | null>(null);
+  const [userData, setUserData] = useState<{ nombre: string; email: string; foto?: string } | null>(null);
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [reservas, setReservas] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -62,6 +21,7 @@ export default function Perfil() {
     document.documentElement.classList.add(theme);
   }, [theme]);
 
+  // Fetch datos del usuario
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
@@ -69,14 +29,15 @@ export default function Perfil() {
       navigate("/login");
       return;
     }
-    fetch(`https://wayraback.up.railway.app/api/usuarios/${userId}`, {
+    fetch(`https://wayraback.up.railway.app/api/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => setUserData({ nombre: data.nombre, email: data.email }))
+      .then((data) => setUserData({ nombre: data.nombre, email: data.email, foto: data.foto }))
       .catch(() => navigate("/login"));
   }, [navigate]);
 
+  // Fetch favoritos y reservas
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
@@ -89,7 +50,7 @@ export default function Perfil() {
         .catch(console.error);
     }
     if (activeSection === "reservas" && token && userId) {
-      fetch(`https://wayraback.up.railway.app/api/reservations/user/${userId}`, {
+      fetch(`https://wayraback.up.railway.app/api/user/${userId}/reservations`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
@@ -110,23 +71,39 @@ export default function Perfil() {
     navigate("/login");
   };
 
+  // Helper para estilo activo del menú lateral
+  const isActive = (section: string) =>
+    activeSection === section 
+      ? "text-indigo-600 font-semibold bg-indigo-100 rounded"
+      : "text-gray-700 hover:text-indigo-600 cursor-pointer";
+
   return (
     <>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
         <Link to="/">
-          <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        </Link>
+          <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+        </Link>        
         <div className="flex space-x-6 font-bold">
           {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
-            <Link key={item} to={`/${item.toLowerCase()}`} className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}>
+            <Link
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              className={`text-lg font-semibold transition duration-300 ${theme === "dark" ? "text-white hover:text-yellow-300" : "text-black hover:text-yellow-600"}`}
+            >
               {item}
             </Link>
           ))}
-          <button onClick={handleLogout} className={`text-lg font-semibold flex items-center gap-1 ${theme === "dark" ? "text-white hover:text-red-400" : "text-black hover:text-red-600"}`}>
+          <button
+            onClick={handleLogout}
+            className={`text-lg font-semibold flex items-center gap-1 ${theme === "dark" ? "text-white hover:text-red-400" : "text-black hover:text-red-600"}`}
+          >
             <FaSignOutAlt /> Cerrar sesión
           </button>
         </div>
-        <button onClick={toggleTheme} className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}>
+        <button
+          onClick={toggleTheme}
+          className={`ml-4 px-4 py-2 rounded-md font-semibold text-sm shadow-sm border-2 ${theme === "dark" ? "border-white text-white hover:bg-gray-700" : "border-black text-black hover:bg-gray-200"}`}
+        >
           {theme === "dark" ? "Modo Claro ☀️" : "Modo Oscuro 🌙"}
         </button>
       </nav>
@@ -141,57 +118,101 @@ export default function Perfil() {
         </div>
 
         <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-1/4 p-4">
-            <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} rounded-lg p-2`}>
+          <aside className="w-full md:w-1/4 p-4">
+            <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black "} rounded-lg p-2`}>
               <ul>
-                <li className="p-2 flex items-center text-indigo-500 font-medium cursor-pointer" onClick={() => setActiveSection("datos-personales")}>
-                  <FaUser className="mr-3" /> Datos personales
+                <li className={`p-2 flex items-center text-white ${isActive("datos-personales")}`} onClick={() => setActiveSection("datos-personales")}>
+                  <FaUser className="mr-3 text-bl" /> Datos personales
                 </li>
-                <li className="p-2 flex items-center cursor-pointer hover:text-indigo-500" onClick={() => setActiveSection("favoritos")}>
-                  <FaStar className="mr-3" /> Mis favoritos
+                <li className={`p-2 flex items-center text-white${isActive("favoritos")}`} onClick={() => setActiveSection("favoritos")}>
+                  <FaStar className="mr-3" text-white /> Mis favoritos
                 </li>
-                <li className="p-2 flex items-center cursor-pointer hover:text-indigo-500" onClick={() => setActiveSection("reservas")}>
-                  <FaCalendarAlt className="mr-3" /> Mis reservas
+                <li className={`p-2 flex items-center text-white${isActive("reservas")}`} onClick={() => setActiveSection("reservas")}>
+                  <FaCalendarAlt className="mr-3 text-white" /> Mis reservas
                 </li>
-                <li className="p-2 flex items-center cursor-pointer hover:text-indigo-500" onClick={() => setActiveSection("eliminar-cuenta")}>
-                  <FaTrash className="mr-3" /> Eliminar cuenta
+                <li className={`p-2 flex items-centertext-white${isActive("eliminar-cuenta")}`} onClick={() => setActiveSection("eliminar-cuenta")}>
+                  <FaTrash className="mr-3 text-white" /> Eliminar cuenta
                 </li>
               </ul>
             </div>
-          </div>
+          </aside>
 
-          <div className="w-full md:w-3/4 p-4">
+          <section className="w-full md:w-3/4 p-4">
             {activeSection === "datos-personales" && userData && (
               <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} rounded-lg p-6 mb-4`}>
-                <h3 className="text-xl font-medium mb-4">Datos personales</h3>
-                <p><strong>Nombre:</strong> {userData.nombre}</p>
-                <p><strong>Correo:</strong> {userData.email}</p>
+                <div className="flex items-center">
+                  <div>
+                    <h3 className="text-xl font-medium mb-2">Datos personales</h3>
+                    <p>
+                      <strong>Nombre:</strong> {userData.nombre}
+                    </p>
+                    <p>
+                      <strong>Correo:</strong> {userData.email}
+                    </p>
+                    {/* Aquí puedes agregar un botón para editar perfil */}
+                  </div>
+                </div>
               </div>
             )}
 
             {activeSection === "favoritos" && (
               <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} rounded-lg p-6 mb-4`}>
                 <h3 className="text-xl font-medium mb-4">Mis favoritos</h3>
-                {favoritos.length > 0 ? favoritos.map((f, i) => (
-                  <div key={i} className="mb-2 p-4 border rounded shadow-sm">
-                    <p><strong>Tipo:</strong> {f.tipo}</p>
-                    <p><strong>ID referencia:</strong> {f.referencia_mongo_id}</p>
-                  </div>
-                )) : <p>No tienes favoritos guardados aún.</p>}
+                {favoritos.length > 0 ? (
+                  favoritos.map((f, i) => (
+                    <div key={i} className="mb-2 p-4 border rounded shadow-sm">
+                      <p>
+                        <strong>Tipo:</strong> {f.tipo_favorito || f.tipo}
+                      </p>
+                      <p>
+                        <strong>Nombre:</strong> {f.nombre || "No disponible"}
+                      </p>
+                      <p>
+                        <strong>Ciudad:</strong> {f.ciudad || "No disponible"}
+                      </p>
+                      <p>
+                        <strong>Precio:</strong> {f.precio ? `$${f.precio.toLocaleString("es-CO")}` : "No disponible"}
+                      </p>
+                      <Link to={`/habitacion/${f.referencia_mongo_id}`} className="text-blue-600 hover:underline">
+                        Ver detalles
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <p>No tienes favoritos guardados aún.</p>
+                )}
               </div>
             )}
 
             {activeSection === "reservas" && (
               <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} rounded-lg p-6 mb-4`}>
                 <h3 className="text-xl font-medium mb-4">Mis reservas</h3>
-                {reservas.length > 0 ? reservas.map((r, i) => (
-                  <div key={i} className="mb-2 p-4 border rounded shadow-sm">
-                    <p><strong>Tipo:</strong> {r.tipo}</p>
-                    <p><strong>Inicio:</strong> {new Date(r.fecha_inicio).toLocaleDateString("es-CO")}</p>
-                    <p><strong>Fin:</strong> {new Date(r.fecha_fin).toLocaleDateString("es-CO")}</p>
-                    <p><strong>ID referencia:</strong> {r.referencia_mongo_id}</p>
-                  </div>
-                )) : <p>No tienes reservas activas.</p>}
+                {reservas.length > 0 ? (
+                  reservas.map((r, i) => (
+                    <div key={i} className="mb-2 p-4 border rounded shadow-sm">
+                      <p>
+                        <strong>Tipo:</strong> {r.tipo || "hotel"}
+                      </p>
+                      <p>
+                        <strong>Inicio:</strong> {new Date(r.fecha_inicio).toLocaleDateString("es-CO")}
+                      </p>
+                      <p>
+                        <strong>Fin:</strong> {new Date(r.fecha_fin).toLocaleDateString("es-CO")}
+                      </p>
+                      <p>
+                        <strong>Nombre alojamiento:</strong> {r.hotel_id?.nombre || "No disponible"}
+                      </p>
+                      <p>
+                        <strong>Ciudad alojamiento:</strong> {r.hotel_id?.ciudad || "No disponible"}
+                      </p>
+                      <Link to={`/habitacion/${r.hotel_id?._id}`} className="text-blue-600 hover:underline">
+                        Ver detalles
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <p>No tienes reservas activas.</p>
+                )}
               </div>
             )}
 
@@ -204,11 +225,9 @@ export default function Perfil() {
                 </button>
               </div>
             )}
-          </div>
+          </section>
         </div>
       </div>
-
-      <ChatBot theme={theme} />
     </>
   );
 }
