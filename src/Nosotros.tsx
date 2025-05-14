@@ -5,6 +5,8 @@ import HeroImage from "./imagenes/FondoInicio.jpg";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import Persona from "./imagenes/persona.jpg";
 import { isLoggedIn } from "./services/auth";
+import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
+import LogoColor from "./imagenes/Logo(sin fondo).png";
 
 
 // ChatBot
@@ -110,11 +112,11 @@ export default function Nosotros() {
   
 
   return (
-    <div className={`flex flex-col min-h-screen w-full transition-colors duration-300 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+    <div className={`min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-      <Link to="/">
-  <img src={Logo} alt="Logo de Wayra" className="h-16" />
-</Link>
+        <Link to="/">
+          <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+        </Link>
         <div className="flex space-x-6 font-bold">
         {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
         <Link

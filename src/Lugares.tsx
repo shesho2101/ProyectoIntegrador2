@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { FaFacebook, FaGithub, FaHeart, FaInstagram } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import Logo from "./imagenes/Logo(sin fondo).png";
 import { fetchHotels, Hotel } from "./services/api";
 import { isLoggedIn } from "./services/auth";
 import { toast, ToastContainer } from "react-toastify";
+import LogoColor from "./imagenes/Logo(sin fondo).png";
+import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
 import "react-toastify/dist/ReactToastify.css";
 
 
@@ -76,7 +77,7 @@ const Alojamientos: React.FC = () => {
     e.stopPropagation();
 
     if (!isLoggedIn()) {
-    toast.warn("⚠️ Debes iniciar sesión para gestionar favoritos");
+      toast.warn("⚠️ Debes iniciar sesión para gestionar favoritos");
       return;
     }
 
@@ -87,6 +88,7 @@ const Alojamientos: React.FC = () => {
 
     try {
       if (favoritoExistente) {
+        // Eliminar de favoritos
         await fetch(`https://wayraback.up.railway.app/api/favorites/${favoritoExistente.id}`, {
           method: "DELETE",
           headers: {
@@ -94,8 +96,10 @@ const Alojamientos: React.FC = () => {
           },
         });
         setFavoritos((prev) => prev.filter((f) => f.referencia_mongo_id !== hotelId));
+        toast.info("💔 Eliminado de favoritos");
       } else {
-        const res = await fetch(`https://wayraback.up.railway.app/api/favorites`, {
+        // Agregar a favoritos
+        const res = await fetch("https://wayraback.up.railway.app/api/favorites", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -110,24 +114,25 @@ const Alojamientos: React.FC = () => {
 
         const nuevo = await res.json();
         setFavoritos((prev) => [...prev, { id: nuevo.id, referencia_mongo_id: hotelId }]);
-        toast.success("✅ Agregado a favoritos  ");
+        toast.success("❤️ Agregado a favoritos");
       }
     } catch (error) {
-    toast.error("❌ Error al gestionar favorito");
+      toast.error("❌ Error al gestionar favorito");
       console.error(error);
     }
   };
+
 
   const hotelesFiltrados = hotels.filter((hotel) =>
     hotel.ciudad.toLowerCase().includes(filtroDestino.toLowerCase())
   );
 
   return (
-    <div className={`flex flex-col min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
-    <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
-      <Link to="/">
-        <img src={Logo} alt="Logo de Wayra" className="h-16" />
-      </Link>
+    <div className={`min-h-screen w-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+          <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-md backdrop-blur-md ${theme === "dark" ? "bg-gray-800 bg-opacity-80" : "bg-white bg-opacity-80"}`}>
+            <Link to="/">
+              <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+            </Link>
       <div className="flex space-x-6 font-bold">
         {["Inicio", "Nosotros", "Vuelos", "Alojamientos", "Bus", "Contacto"].map((item) => (
           <Link
@@ -231,7 +236,7 @@ const Alojamientos: React.FC = () => {
                 />
                 <button
                   onClick={(e) => toggleFavorito(destino._id, e)}
-                  className={`absolute top-2 right-2 p-1 rounded-full shadow-md transition-all ${esFavorito ? "text-red-500 bg-white" : "text-gray-400 bg-white"}`}
+                  className={`absolute top-2 right-2 p-1 rounded-full shadow-md transition-all transform ${esFavorito ? "scale-110 text-red-500 bg-white" : "scale-100 text-gray-400 bg-white"} hover:scale-110`}
                   title="Agregar o quitar de favoritos"
                 >
                   <FaHeart />
@@ -258,8 +263,8 @@ const Alojamientos: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
            <Link to="/">
-          <img src={Logo} alt="Logo de Wayra" className="h-16" />
-        </Link>
+              <img src={theme === "dark" ? LogoBlanco : LogoColor} alt="Logo de Wayra" className="h-16" />
+            </Link>
             <h3 className="text-base font-bold mb-1">Contáctanos</h3>
             <p className="text-sm">Calle 123, Bogotá, Colombia</p>
             <p className="text-sm">+57 123 456 7890</p>
