@@ -10,6 +10,7 @@ export default function Perfil() {
   const [userData, setUserData] = useState<{ nombre: string; email: string; foto?: string } | null>(null);
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [reservas, setReservas] = useState<any[]>([]);
+  const [favoritosDetalles, setFavoritosDetalles] = useState<{ [key: string]: any }>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,8 +47,31 @@ export default function Perfil() {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
-        .then(setFavoritos)
-        .catch(console.error);
+        .then((favData) => {
+          setFavoritos(favData);
+
+          // Por cada favorito, obtener detalle si no está ya cargado
+          favData.forEach(async (fav: any) => {
+            if (!favoritosDetalles[fav.referencia_mongo_id]) {
+              try {
+                const resDetalle = await fetch(
+                  `https://wayraback.up.railway.app/api/favorites/detalle/${fav.referencia_mongo_id}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                );
+                const detalleJson = await resDetalle.json();
+                setFavoritosDetalles((prev) => ({
+                  ...prev,
+                  [fav.referencia_mongo_id]: detalleJson.detalles || detalleJson,
+                }));
+              } catch (error) {
+                console.error("Error cargando detalle favorito", error);
+              }
+            }
+          });
+        })
+      .catch(console.error);
     }
     if (activeSection === "reservas" && token && userId) {
       fetch(`https://wayraback.up.railway.app/api/user/${userId}/reservations`, {
@@ -159,28 +183,22 @@ export default function Perfil() {
               <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} rounded-lg p-6 mb-4`}>
                 <h3 className="text-xl font-medium mb-4">Mis favoritos</h3>
                 {favoritos.length > 0 ? (
-                  favoritos.map((f, i) => (
-                    <div key={i} className="mb-2 p-4 border rounded shadow-sm">
-                      <p>
-                        <strong>Tipo:</strong> {f.tipo_favorito || f.tipo}
-                      </p>
-                      <p>
-                        <strong>Nombre:</strong> {f.nombre || "No disponible"}
-                      </p>
-                      <p>
-                        <strong>Ciudad:</strong> {f.ciudad || "No disponible"}
-                      </p>
-                      <p>
-                        <strong>Precio:</strong> {f.precio ? `$${f.precio.toLocaleString("es-CO")}` : "No disponible"}
-                      </p>
-                      <Link to={`/habitacion/${f.referencia_mongo_id}`} className="text-blue-600 hover:underline">
-                        Ver detalles
-                      </Link>
-                    </div>
-                  ))
+                  favoritos.map((f) => {
+                    const detalle = favoritosDetalles[f.referencia_mongo_id] || {};
+                    return (
+                      <div key={f.referencia_mongo_id} className="mb-2 p-4 border rounded shadow-sm">
+                        <p><strong>Tipo:</strong> {f.tipo_favorito}</p>
+                        <p><strong>Nombre:</strong> {detalle.nombre || "No disponible"}</p>
+                        <p><strong>Ciudad:</strong> {detalle.ciudad || "No disponible"}</p>
+                        <p><strong>Precio:</strong> {detalle.precio ? `$${detalle.precio.toLocaleString("es-CO")}` : "No disponible"}</p>
+                        <Link to={`/habitacion/${f.referencia_mongo_id}`} className="text-blue-600 hover:underline">Ver detalles</Link>
+                      </div>
+                    );
+                  })
                 ) : (
                   <p>No tienes favoritos guardados aún.</p>
                 )}
+
               </div>
             )}
 

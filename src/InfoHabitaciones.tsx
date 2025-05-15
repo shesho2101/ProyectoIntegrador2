@@ -200,6 +200,18 @@ export default function InfoHabitaciones() {
       return; 
     }
 
+    if (!fechaInicio || !fechaFin || !hotel?.precio) {
+      toast.error("⚠️ Debes seleccionar fechas válidas.");
+      return;
+    }
+
+    // Calcula la cantidad real: número de noches
+    const dias = differenceInDays(new Date(fechaFin), new Date(fechaInicio));
+    if (dias <= 0) {
+      toast.error("⚠️ Las fechas no son válidas.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const usuarioId = Number(localStorage.getItem("userId"));
@@ -214,8 +226,7 @@ export default function InfoHabitaciones() {
           usuario_id: usuarioId,
           producto_id: id,
           tipo_producto: "hotel",
-          cantidad: 1,
-          precio_total: precioTotal,
+          cantidad: dias,  // Aquí envío la cantidad real
         }),
       });
 
@@ -231,6 +242,8 @@ export default function InfoHabitaciones() {
       toast.error("❌ Ocurrió un error al añadir al carrito.");
     }
   };
+
+
 
   const handleSubmitOpinion = async () => {
     const token = localStorage.getItem("token");
