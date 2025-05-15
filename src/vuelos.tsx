@@ -149,7 +149,7 @@ const Vuelos: React.FC = () => {
       });
 
       const res = await fetch(
-        `http://localhost:2401/api/flights/filtered?${queryParams.toString()}`
+        `https://wayraback.up.railway.app/api/flights/filtered?${queryParams.toString()}`
       );
 
       if (res.ok) {

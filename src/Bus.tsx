@@ -139,7 +139,7 @@ const Bus: React.FC = () => {
   }, [theme]);
 
   useEffect(() => {
-    fetch("http://localhost:2401/api/buses")
+    fetch("https://wayraback.up.railway.app/api/buses")
       .then((res) => res.json())
       .then((data) => {
         const busesConDatos = (data.buses || data).map((bus: BusType) => ({
