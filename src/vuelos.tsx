@@ -37,7 +37,7 @@ const Vuelos: React.FC = () => {
   const [returnDate, setReturnDate] = useState("");
   const [persons, setPersons] = useState("1");
 
-  const [flightType, setFlightType] = useState<"ida" | "ida_vuelta">("ida");
+  const [flightType] = useState<"ida" | "ida_vuelta">("ida");
   const [allFlights, setAllFlights] = useState<any[]>([]);
   const [flights, setFlights] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -84,7 +84,7 @@ const Vuelos: React.FC = () => {
       });
 
       const res = await fetch(
-        `http://localhost:2401/api/flights/filtered?${queryParams.toString()}`
+        `https://wayraback.up.railway.app/api/flights/filtered?${queryParams.toString()}`
       );
 
       if (res.ok) {
@@ -165,9 +165,6 @@ const Vuelos: React.FC = () => {
 
   const handleFlightClick = (flight: any) => {
     setSelectedFlight(flight);
-  };
-  const closeModal = () => {
-    setSelectedFlight(null);
   };
 
   const renderPagination = () => {
