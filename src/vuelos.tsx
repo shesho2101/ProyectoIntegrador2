@@ -99,7 +99,7 @@ const Vuelos: React.FC = () => {
   const [persons, setPersons] = useState("1");
 
   // Estados para vuelos, paginación, selección y filtros avanzados
-  const [flightType, setFlightType] = useState<"ida" | "ida_vuelta">("ida");
+  const [flightType] = useState<"ida" | "ida_vuelta">("ida");
   const [allFlights, setAllFlights] = useState<any[]>([]);
   const [flights, setFlights] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -232,9 +232,6 @@ const Vuelos: React.FC = () => {
   // Selección vuelo
   const handleFlightClick = (flight: any) => {
     setSelectedFlight(flight);
-  };
-  const closeModal = () => {
-    setSelectedFlight(null);
   };
 
   // Render paginación (igual que antes)
