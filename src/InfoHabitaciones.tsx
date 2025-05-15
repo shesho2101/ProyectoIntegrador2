@@ -6,7 +6,6 @@ import {
 } from "react-icons/fa";
 import { Link, useParams } from "react-router-dom";
 import { getHotelById } from "../src/services/api";
-import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
 import LogoColor from "./imagenes/Logo(sin fondo).png";
 import LogoBlanco from "./imagenes/LogoBlancoWayra.png";
@@ -270,7 +269,7 @@ export default function InfoHabitaciones() {
         referencia_mongo_id: id,
         calificacion,
         comentario,
-        fecha_publicacion: new Date().toISOString(), // Generar fecha actual
+        fecha_publicacion: new Date().toISOString(), 
       };
 
       setHotel((prev: { opiniones: any; }) => ({
@@ -452,7 +451,9 @@ export default function InfoHabitaciones() {
       <footer className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-900"} text-white py-8 px-6 md:px-12`}>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
-            <img src={Logo} alt="Logo de Wayra" className="h-16" />
+            <Link to="/">
+              <img src={theme === "dark" ? LogoBlanco : LogoBlanco} alt="Logo de Wayra" className="h-16" />
+            </Link>
             <h3 className="text-base font-bold mb-1">Contáctanos</h3>
             <p className="text-sm">Calle 123, Bogotá, Colombia</p>
             <p className="text-sm">+57 123 456 7890</p>
