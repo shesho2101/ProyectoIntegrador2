@@ -4,93 +4,32 @@ import { Link } from "react-router-dom";
 import Logo from "./imagenes/Logo(sin fondo).png";
 import { isLoggedIn } from "./services/auth";
 
-type ChatMessage = { from: "user" | "bot"; text: string };
+// Diccionario para mapear siglas a nombres completos
+const cityCodeToName: Record<string, string> = {
+  BAQ: "Barranquilla",
+  MED: "Medellin",
+  BGA: "Bucaramanga",
+  BOG: "Bogotá",
+  CAL: "Cali",
+  CTG: "Cartagena",
+  PEI: "Pereira",
+  MZL: "Manizales",
+  ARM: "Armenia",
+  CUC: "Cúcuta",
+  // Agrega aquí más si tienes
+};
 
-const ChatBot = ({ theme }: { theme: "light" | "dark" }) => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { from: "bot", text: "¡Hola! ¿En qué puedo ayudarte hoy?" },
-  ]);
-  const [inputValue, setInputValue] = useState("");
+// Lista de ciudades para mostrar en el datalist
+const cities = Object.values(cityCodeToName);
 
-  const toggleChat = () => setIsChatOpen(!isChatOpen);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    const userMessage: ChatMessage = { from: "user", text: inputValue.trim() };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
-    setTimeout(() => {
-      const botReply: ChatMessage = {
-        from: "bot",
-        text: "Gracias por tu mensaje. Pronto te responderemos. ✈️",
-      };
-      setMessages((prev) => [...prev, botReply]);
-    }, 800);
-  };
-
-  return (
-    <>
-      <div
-        onClick={toggleChat}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gray-600 text-white rounded-full w-16 h-16 shadow-lg cursor-pointer transition transform hover:scale-105"
-      >
-        <span className="text-xl">💬</span>
-      </div>
-
-      <div
-        className={`fixed bottom-0 right-0 w-full md:w-96 overflow-hidden rounded-t-3xl shadow-xl transition-all duration-300 z-50 ${
-          theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
-        } ${isChatOpen ? "h-96 opacity-100" : "h-0 opacity-0"}`}
-      >
-        <div className="flex justify-end p-4">
-          <button
-            onClick={toggleChat}
-            className="text-gray-500 hover:text-yellow-500"
-          >
-            ✖
-          </button>
-        </div>
-        <div className="px-6 overflow-y-auto h-56 space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`p-3 rounded-lg max-w-xs ${
-                msg.from === "user"
-                  ? "bg-yellow-400 self-end text-gray-900"
-                  : theme === "dark"
-                  ? "bg-gray-700 text-white"
-                  : "bg-gray-200 text-black"
-              }`}
-            >
-              <p>{msg.text}</p>
-            </div>
-          ))}
-        </div>
-        <div className="px-6 py-4">
-          <form onSubmit={handleSendMessage}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Escribe tu mensaje..."
-              className={`w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
-                theme === "dark"
-                  ? "bg-gray-700 text-white border-gray-500"
-                  : "bg-white text-black border-gray-300"
-              }`}
-            />
-          </form>
-        </div>
-      </div>
-    </>
-  );
+const normalizeCity = (city: string) => {
+  // Convierte siglas a nombre completo si existe, si no retorna el texto tal cual
+  if (!city) return "";
+  const upper = city.toUpperCase();
+  return cityCodeToName[upper] || city;
 };
 
 const Vuelos: React.FC = () => {
-  // Estados para tema y búsqueda
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -98,15 +37,13 @@ const Vuelos: React.FC = () => {
   const [returnDate, setReturnDate] = useState("");
   const [persons, setPersons] = useState("1");
 
-  // Estados para vuelos, paginación, selección y filtros avanzados
-  const [flightType] = useState<"ida" | "ida_vuelta">("ida");
+  const [flightType, setFlightType] = useState<"ida" | "ida_vuelta">("ida");
   const [allFlights, setAllFlights] = useState<any[]>([]);
   const [flights, setFlights] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const flightsPerPage = 9;
   const [selectedFlight, setSelectedFlight] = useState<any | null>(null);
 
-  // Filtros escalas y rango precio
   const [stopsFilter, setStopsFilter] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<{ min: number | ""; max: number | "" }>({
     min: "",
@@ -120,7 +57,6 @@ const Vuelos: React.FC = () => {
     document.documentElement.classList.add(theme);
   }, [theme]);
 
-  // Manejadores filtros
   const handleStopsToggle = (stop: number) => {
     setStopsFilter((prev) =>
       prev.includes(stop) ? prev.filter((s) => s !== stop) : [...prev, stop]
@@ -137,7 +73,6 @@ const Vuelos: React.FC = () => {
     }
   };
 
-  // Función para traer vuelos desde backend y filtrar localmente
   const fetchFlights = async () => {
     try {
       const queryParams = new URLSearchParams({
@@ -149,7 +84,7 @@ const Vuelos: React.FC = () => {
       });
 
       const res = await fetch(
-        `https://wayraback.up.railway.app/api/flights/filtered?${queryParams.toString()}`
+        `http://localhost:2401/api/flights/filtered?${queryParams.toString()}`
       );
 
       if (res.ok) {
@@ -171,22 +106,24 @@ const Vuelos: React.FC = () => {
           }))
         );
 
-        // Filtros locales extra para evitar dependencias backend
+        // Aquí usamos normalizeCity para convertir siglas a nombres completos y comparar
         if (destination.trim() !== "") {
-          vuelos = vuelos.filter((v: { destination: string; }) =>
-            v.destination.toLowerCase().includes(destination.trim().toLowerCase())
+          const destNormalized = destination.trim().toLowerCase();
+          vuelos = vuelos.filter((v: { destination: string }) =>
+            normalizeCity(v.destination).toLowerCase().includes(destNormalized)
           );
         }
         if (origin.trim() !== "") {
-          vuelos = vuelos.filter((v: { origin: string; }) =>
-            v.origin.toLowerCase().includes(origin.trim().toLowerCase())
+          const originNormalized = origin.trim().toLowerCase();
+          vuelos = vuelos.filter((v: { origin: string }) =>
+            normalizeCity(v.origin).toLowerCase().includes(originNormalized)
           );
         }
         if (stopsFilter.length > 0) {
-          vuelos = vuelos.filter((v: { stops: any; }) => stopsFilter.includes(Number(v.stops)));
+          vuelos = vuelos.filter((v: { stops: any }) => stopsFilter.includes(Number(v.stops)));
         }
         if (priceRange.min !== "" || priceRange.max !== "") {
-          vuelos = vuelos.filter((v: { price: any; }) => {
+          vuelos = vuelos.filter((v: { price: any }) => {
             const p = v.price;
             if (priceRange.min !== "" && priceRange.max !== "") {
               return p >= priceRange.min && p <= priceRange.max;
@@ -209,32 +146,30 @@ const Vuelos: React.FC = () => {
     }
   };
 
-  // Actualiza vuelos paginados
   useEffect(() => {
     const startIndex = (page - 1) * flightsPerPage;
     const endIndex = startIndex + flightsPerPage;
     setFlights(allFlights.slice(startIndex, endIndex));
   }, [allFlights, page]);
 
-  // Ejecuta búsqueda automáticamente cuando cambian filtros
   useEffect(() => {
     fetchFlights();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin, destination, departureDate, returnDate, flightType, stopsFilter, priceRange]);
 
-  // Cambiar tema claro/oscuro
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
   };
 
-  // Selección vuelo
   const handleFlightClick = (flight: any) => {
     setSelectedFlight(flight);
   };
+  const closeModal = () => {
+    setSelectedFlight(null);
+  };
 
-  // Render paginación (igual que antes)
   const renderPagination = () => {
     const maxPageButtons = 7;
     const totalPages = Math.ceil(allFlights.length / flightsPerPage);
@@ -449,7 +384,7 @@ const Vuelos: React.FC = () => {
               : "bg-white border-gray-200 text-black"
           }`}
         >
-          {/* Origen */}
+          {/* Origen con datalist */}
           <div className="flex-1 min-w-[200px]">
             <label
               className={`block text-xs font-bold mb-1 ${
@@ -459,7 +394,7 @@ const Vuelos: React.FC = () => {
               Origen
             </label>
             <input
-              type="text"
+              list="cities"
               placeholder="¿Desde dónde viajas?"
               className={`w-full rounded-md px-3 py-2 border text-sm transition-colors duration-300 ${
                 theme === "dark"
@@ -469,9 +404,14 @@ const Vuelos: React.FC = () => {
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
             />
+            <datalist id="cities">
+              {cities.map((city) => (
+                <option key={city} value={city} />
+              ))}
+            </datalist>
           </div>
 
-          {/* Destino */}
+          {/* Destino con datalist */}
           <div className="flex-1 min-w-[200px]">
             <label
               className={`block text-xs font-bold mb-1 ${
@@ -481,7 +421,7 @@ const Vuelos: React.FC = () => {
               Destino
             </label>
             <input
-              type="text"
+              list="cities"
               placeholder="¿A dónde quieres ir?"
               className={`w-full rounded-md px-3 py-2 border text-sm transition-colors duration-300 ${
                 theme === "dark"
@@ -491,6 +431,11 @@ const Vuelos: React.FC = () => {
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
             />
+            <datalist id="cities">
+              {cities.map((city) => (
+                <option key={city} value={city} />
+              ))}
+            </datalist>
           </div>
 
           {/* Fecha de salida */}
@@ -664,7 +609,7 @@ const Vuelos: React.FC = () => {
 
                     {/* Origen y destino */}
                     <div className="text-sm font-semibold mt-1">
-                      {flight.origin} ➔ {flight.destination}
+                      {normalizeCity(flight.origin)} ➔ {normalizeCity(flight.destination)}
                     </div>
 
                     <div className="text-xs text-gray-500">
@@ -729,8 +674,6 @@ const Vuelos: React.FC = () => {
           <p className="text-sm">© 2025 Wayra - Todos los derechos reservados.</p>
         </div>
       </footer>
-
-      <ChatBot theme={theme} />
     </div>
   );
 };
